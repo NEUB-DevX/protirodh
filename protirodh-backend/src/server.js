@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import os from 'os';
 import connectDB from './configs/dbConnect.js';
 import jwtRouterV1 from './routes/v1/auth/jwtGeneratorRouter.js';
 import userNoPasswordRouterV1 from './routes/v1/user/createUserNoPasswordRouter.js';
@@ -31,12 +32,17 @@ const server = http.createServer(app);
 // ✅ Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: '*', // or restrict to your frontend URL
+    origin: '*', // Allow all origins for development
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
   },
 });
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allow all origins for development
+  credentials: true
+}));
 
 
 // 🧠 Active users
@@ -126,8 +132,20 @@ app.get('/', (req, res) => {
 
 // ====== Start the server ======
 connectDB().then(() => {
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Also accessible on network at http://0.0.0.0:${PORT}`);
+    
+    // Get and display local network IP addresses
+    const networkInterfaces = os.networkInterfaces();
+    console.log('\nNetwork addresses:');
+    Object.keys(networkInterfaces).forEach((interfaceName) => {
+      networkInterfaces[interfaceName].forEach((iface) => {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          console.log(`  ${interfaceName}: http://${iface.address}:${PORT}`);
+        }
+      });
+    });
   });
 });
 
