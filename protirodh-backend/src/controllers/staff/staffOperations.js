@@ -84,7 +84,7 @@ export const getStaffDashboard = async (req, res) => {
 // Get appointments assigned to staff
 export const getStaffAppointments = async (req, res) => {
   try {
-    const staffId = req.staff.id;
+    const staffId = req.staff.staffId;
     const { date, status, search } = req.query;
 
     // Build query
