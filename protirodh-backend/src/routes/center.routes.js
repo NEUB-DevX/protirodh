@@ -1,5 +1,7 @@
 import express from 'express';
 import * as centerOperations from '../controllers/center/centerOperations.js';
+import * as staffManagement from '../controllers/center/staffManagement.js';
+import * as scheduleManagement from '../controllers/center/scheduleManagement.js';
 import { authenticateCenterToken } from '../middlewares/centerAuthMiddleware.js';
 
 const router = express.Router();
@@ -22,5 +24,23 @@ router.put('/profile', centerOperations.updateCenterProfile);
 
 // Center dashboard/analytics
 router.get('/dashboard', centerOperations.getCenterDashboard);
+
+// Staff management routes
+router.get('/staff', staffManagement.getCenterStaff);
+router.post('/staff', staffManagement.createStaff);
+router.put('/staff/:id', staffManagement.updateStaff);
+router.delete('/staff/:id', staffManagement.deleteStaff);
+
+// Date slot routes
+router.get('/date-slots', scheduleManagement.getDateSlots);
+router.post('/date-slots', scheduleManagement.createDateSlot);
+router.put('/date-slots/:id', scheduleManagement.updateDateSlot);
+router.delete('/date-slots/:id', scheduleManagement.deleteDateSlot);
+
+// Time slot routes
+router.get('/date-slots/:dateSlotId/time-slots', scheduleManagement.getTimeSlots);
+router.post('/time-slots', scheduleManagement.createTimeSlot);
+router.put('/time-slots/:id', scheduleManagement.updateTimeSlot);
+router.delete('/time-slots/:id', scheduleManagement.deleteTimeSlot);
 
 export default router;

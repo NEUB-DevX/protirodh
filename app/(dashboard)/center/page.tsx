@@ -22,8 +22,8 @@ import {
   FaEyeSlash,
   FaCopy,
 } from "react-icons/fa";
-import { stockRequestApi, vaccineApi, profileApi, dashboardApi } from "@/lib/api/centerApi";
-import type { StockRequest, Vaccine, CenterProfile, CenterDashboard } from "@/lib/types/center.types";
+import { stockRequestApi, vaccineApi, profileApi, dashboardApi, staffApi, dateSlotApi } from "@/lib/api/centerApi";
+import type { StockRequest, Vaccine, CenterProfile, CenterDashboard, Staff as StaffType, DateSlot as DateSlotType } from "@/lib/types/center.types";
 
 // TypeScript interfaces
 interface DateSlotForm {
@@ -57,6 +57,7 @@ interface TimeSlotForm {
 }
 
 interface DateSlot {
+  _id?: string;
   date: string;
   capacity: number;
   booked: number;
@@ -64,7 +65,8 @@ interface DateSlot {
 }
 
 interface Staff {
-  id: number;
+  _id?: string;
+  id?: number;
   name: string;
   role: string;
   email?: string;
@@ -105,6 +107,8 @@ export default function CenterDashboard() {
   const [stockRequests, setStockRequests] = useState<StockRequest[]>([]);
   const [centerProfile, setCenterProfile] = useState<CenterProfile | null>(null);
   const [dashboard, setDashboard] = useState<CenterDashboard | null>(null);
+  const [staffList, setStaffList] = useState<StaffType[]>([]);
+  const [dateSlotsList, setDateSlotsList] = useState<DateSlotType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,17 +129,21 @@ export default function CenterDashboard() {
       setLoading(true);
       setError(null);
       
-      const [vaccinesRes, stockRes, profileRes, dashboardRes] = await Promise.all([
+      const [vaccinesRes, stockRes, profileRes, dashboardRes, staffRes, dateSlotsRes] = await Promise.all([
         vaccineApi.getAll(),
         stockRequestApi.getAll(),
         profileApi.get(),
         dashboardApi.get(),
+        staffApi.getAll(),
+        dateSlotApi.getAll(),
       ]);
 
       if (vaccinesRes.data) setVaccines(vaccinesRes.data);
       if (stockRes.data) setStockRequests(stockRes.data);
       if (profileRes.data) setCenterProfile(profileRes.data);
       if (dashboardRes.data) setDashboard(dashboardRes.data);
+      if (staffRes.data) setStaffList(staffRes.data);
+      if (dateSlotsRes.data) setDateSlotsList(dateSlotsRes.data);
     } catch (err) {
       console.error('Error loading data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -302,29 +310,40 @@ export default function CenterDashboard() {
   };
 
   // Form submit handlers
-  const handleDateSlotSubmit = (e: React.FormEvent) => {
+  const handleDateSlotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    if (editingDateSlot) {
-      console.log("Updating Date Slot:", {
-        ...editingDateSlot,
-        ...dateSlotForm,
-      });
-    } else {
-      console.log("Creating New Date Slot:", dateSlotForm);
+    try {
+      if (editingDateSlot) {
+        await dateSlotApi.update(editingDateSlot._id || editingDateSlot.date, dateSlotForm);
+        alert('Date slot updated successfully!');
+      } else {
+        await dateSlotApi.create(dateSlotForm);
+        alert('Date slot created successfully!');
+      }
+      await loadAllData();
+      closeDateSlotModal();
+    } catch (err) {
+      console.error('Error saving date slot:', err);
+      alert(err instanceof Error ? err.message : 'Failed to save date slot');
     }
-    closeDateSlotModal();
   };
 
-  const handleStaffSubmit = (e: React.FormEvent) => {
+  const handleStaffSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    if (editingStaff) {
-      console.log("Updating Staff:", { ...editingStaff, ...staffForm });
-    } else {
-      console.log("Creating New Staff:", staffForm);
+    try {
+      if (editingStaff) {
+        await staffApi.update(editingStaff._id || String(editingStaff.id), staffForm);
+        alert('Staff member updated successfully!');
+      } else {
+        await staffApi.create(staffForm);
+        alert('Staff member created successfully!');
+      }
+      await loadAllData();
+      closeStaffModal();
+    } catch (err) {
+      console.error('Error saving staff:', err);
+      alert(err instanceof Error ? err.message : 'Failed to save staff member');
     }
-    closeStaffModal();
   };
 
   const handleStockRequestSubmit = async (e: React.FormEvent) => {
@@ -367,7 +386,7 @@ export default function CenterDashboard() {
     staffCount: centerProfile?.staff || 0,
   };
 
-  // Mock stock data (to be replaced with real inventory data)
+  // Stock data calculated from real inventory (to be implemented)
   const stockData = {
     vaccines: vaccines.map((vaccine) => ({
       name: vaccine.name,
@@ -378,102 +397,6 @@ export default function CenterDashboard() {
       temp: vaccine.temperature,
     })),
   };
-
-  // Mock data for schedule (to be replaced with real data)
-  const dateSlots = [
-    { date: "2024-11-08", capacity: 500, booked: 380, status: "active" },
-    { date: "2024-11-09", capacity: 500, booked: 420, status: "active" },
-    { date: "2024-11-10", capacity: 500, booked: 150, status: "active" },
-    { date: "2024-11-11", capacity: 0, booked: 0, status: "closed" },
-  ];
-
-  const timeSlots = [
-    {
-      time: "09:00 AM - 10:00 AM",
-      capacity: 50,
-      booked: 45,
-      appointments: 45,
-      assignedStaff: { id: 1, name: "Dr. Kamal Ahmed" },
-    },
-    {
-      time: "10:00 AM - 11:00 AM",
-      capacity: 50,
-      booked: 48,
-      appointments: 48,
-      assignedStaff: { id: 2, name: "Nurse Fatima Khan" },
-    },
-    {
-      time: "11:00 AM - 12:00 PM",
-      capacity: 50,
-      booked: 42,
-      appointments: 42,
-      assignedStaff: { id: 1, name: "Dr. Kamal Ahmed" },
-    },
-    {
-      time: "12:00 PM - 01:00 PM",
-      capacity: 50,
-      booked: 35,
-      appointments: 35,
-      assignedStaff: null,
-    },
-    {
-      time: "02:00 PM - 03:00 PM",
-      capacity: 50,
-      booked: 40,
-      appointments: 40,
-      assignedStaff: { id: 3, name: "Dr. Rahman" },
-    },
-    {
-      time: "03:00 PM - 04:00 PM",
-      capacity: 50,
-      booked: 38,
-      appointments: 38,
-      assignedStaff: { id: 4, name: "Nurse Sultana" },
-    },
-  ];
-
-  const staffMembers = [
-    { 
-      id: 1, 
-      name: "Dr. Kamal Ahmed", 
-      role: "Vaccinator", 
-      email: "kamal@center.com",
-      phone: "+880 1711-123456",
-      staffId: "STAFF001",
-      password: "kamal@2024",
-      status: "active" 
-    },
-    { 
-      id: 2, 
-      name: "Nurse Fatima Khan", 
-      role: "Vaccinator", 
-      email: "fatima@center.com",
-      phone: "+880 1722-234567",
-      staffId: "STAFF002",
-      password: "fatima@2024",
-      status: "active" 
-    },
-    { 
-      id: 3, 
-      name: "Dr. Rahman", 
-      role: "Vaccinator", 
-      email: "rahman@center.com",
-      phone: "+880 1733-345678",
-      staffId: "STAFF003",
-      password: "rahman@2024",
-      status: "active" 
-    },
-    { 
-      id: 4, 
-      name: "Nurse Sultana", 
-      role: "Vaccinator", 
-      email: "sultana@center.com",
-      phone: "+880 1744-456789",
-      staffId: "STAFF004",
-      password: "sultana@2024",
-      status: "active" 
-    },
-  ];
 
   const preservationGuidelines = [
     {
@@ -664,9 +587,9 @@ export default function CenterDashboard() {
                 Available Dates
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
-                {dateSlots.map((slot) => (
+                {dateSlotsList.map((slot) => (
                   <div
-                    key={slot.date}
+                    key={slot._id || slot.date}
                     className={`rounded-xl border p-6 shadow-sm ${
                       slot.status === "active"
                         ? "border-green-200 bg-green-50"
@@ -684,7 +607,7 @@ export default function CenterDashboard() {
                         />
                         <div>
                           <h4 className="font-bold text-gray-900">
-                            {slot.date}
+                            {new Date(slot.date).toLocaleDateString()}
                           </h4>
                           <p className="text-sm text-gray-600">
                             {new Date(slot.date).toLocaleDateString("en-US", {
@@ -760,7 +683,20 @@ export default function CenterDashboard() {
                       >
                         <FaEdit />
                       </button>
-                      <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
+                      <button 
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete this date slot?')) {
+                            try {
+                              await dateSlotApi.delete(slot._id || slot.date);
+                              await loadAllData();
+                              alert('Date slot deleted successfully!');
+                            } catch (err) {
+                              alert(err instanceof Error ? err.message : 'Failed to delete date slot');
+                            }
+                          }
+                        }}
+                        className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50"
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -787,9 +723,9 @@ export default function CenterDashboard() {
               </button>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {staffMembers.map((staff) => (
+              {staffList.map((staff) => (
                 <div
-                  key={staff.id}
+                  key={staff._id || staff.id}
                   className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                 >
                   <div className="mb-4 flex items-center gap-3">
@@ -835,15 +771,15 @@ export default function CenterDashboard() {
                         <span className="text-xs text-gray-500">Password:</span>
                         <div className="flex gap-1">
                           <button
-                            onClick={() => togglePasswordVisibility(staff.id)}
+                            onClick={() => togglePasswordVisibility(Number(staff._id || staff.id))}
                             className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200"
                           >
-                            {visiblePasswords[staff.id] ? (
+                            {visiblePasswords[Number(staff._id || staff.id)] ? (
                               <FaEyeSlash className="text-xs" />
                             ) : (
                               <FaEye className="text-xs" />
                             )}
-                            {visiblePasswords[staff.id] ? "Hide" : "Show"}
+                            {visiblePasswords[Number(staff._id || staff.id)] ? "Hide" : "Show"}
                           </button>
                           <button
                             onClick={() =>
@@ -857,7 +793,7 @@ export default function CenterDashboard() {
                         </div>
                       </div>
                       <p className="font-mono text-sm font-semibold text-gray-900">
-                        {visiblePasswords[staff.id]
+                        {visiblePasswords[Number(staff._id || staff.id)]
                           ? staff.password
                           : "••••••••••••"}
                       </p>
@@ -893,7 +829,20 @@ export default function CenterDashboard() {
                       <FaEdit className="mr-2 inline" />
                       Edit
                     </button>
-                    <button className="rounded-lg border border-red-300 bg-white p-2 text-sm font-medium text-red-700 hover:bg-red-50">
+                    <button 
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to delete this staff member?')) {
+                          try {
+                            await staffApi.delete(staff._id || String(staff.id));
+                            await loadAllData();
+                            alert('Staff member deleted successfully!');
+                          } catch (err) {
+                            alert(err instanceof Error ? err.message : 'Failed to delete staff member');
+                          }
+                        }
+                      }}
+                      className="rounded-lg border border-red-300 bg-white p-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -1195,101 +1144,13 @@ export default function CenterDashboard() {
               </div>
 
               <div className="space-y-3">
-                {timeSlots.map((slot, index) => (
-                  <div
-                    key={index}
-                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-                  >
-                    <div className="mb-4 flex items-start justify-between">
-                      <div className="flex flex-1 items-start gap-4">
-                        <FaClock className="mt-1 text-2xl text-green-600" />
-                        <div className="flex-1">
-                          <p className="font-bold text-gray-900">{slot.time}</p>
-                          <div className="mt-2 flex items-center gap-6">
-                            <div>
-                              <p className="text-xs text-gray-500">Capacity</p>
-                              <p className="font-semibold text-gray-900">
-                                {slot.capacity}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Booked</p>
-                              <p className="font-semibold text-gray-900">
-                                {slot.booked}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">
-                                Appointments
-                              </p>
-                              <p className="font-semibold text-gray-900">
-                                {slot.appointments}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Assigned Staff */}
-                          <div className="mt-3">
-                            <p className="mb-2 text-xs font-medium text-gray-500">
-                              Assigned Staff:
-                            </p>
-                            {slot.assignedStaff ? (
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-2 rounded-lg bg-green-100 px-4 py-2">
-                                  <FaUserCircle className="text-lg text-green-600" />
-                                  <span className="font-medium text-green-900">
-                                    {slot.assignedStaff.name}
-                                  </span>
-                                </div>
-                                <button
-                                  className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-                                  title="Remove staff"
-                                >
-                                  <FaTrash className="text-xs" />
-                                </button>
-                                <button
-                                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                  title="Change staff"
-                                >
-                                  Change
-                                </button>
-                              </div>
-                            ) : (
-                              <button className="flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">
-                                <FaPlus />
-                                Assign Staff to this slot
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="w-32">
-                          <div className="mb-1 text-right text-sm font-semibold text-gray-900">
-                            {Math.round((slot.booked / slot.capacity) * 100)}%
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-gray-200">
-                            <div
-                              className="h-2 rounded-full bg-green-600"
-                              style={{
-                                width: `${(slot.booked / slot.capacity) * 100}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => openTimeSlotModal(slot)}
-                          className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 transition-colors hover:bg-red-50">
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-12">
+                  <FaClock className="mb-3 text-4xl text-gray-400" />
+                  <p className="text-lg font-semibold text-gray-700">Time Slots Management</p>
+                  <p className="mt-2 text-center text-sm text-gray-500">
+                    Time slots feature will be integrated with the backend soon.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -1800,8 +1661,8 @@ export default function CenterDashboard() {
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
                   >
                     <option value="">No staff assigned</option>
-                    {staffMembers.map((staff) => (
-                      <option key={staff.id} value={staff.id}>
+                    {staffList.map((staff) => (
+                      <option key={staff._id || staff.id} value={staff._id || staff.id}>
                         {staff.name} ({staff.role})
                       </option>
                     ))}

@@ -106,3 +106,116 @@ export const dashboardApi = {
     return apiCall('/center/dashboard');
   },
 };
+
+// Staff API
+export const staffApi = {
+  getAll: async () => {
+    return apiCall('/center/staff');
+  },
+
+  create: async (staffData: {
+    staffId: string;
+    name: string;
+    email: string;
+    phone: string;
+    role: string;
+    password: string;
+  }) => {
+    return apiCall('/center/staff', {
+      method: 'POST',
+      body: JSON.stringify(staffData),
+    });
+  },
+
+  update: async (id: string, staffData: Partial<{
+    staffId: string;
+    name: string;
+    email: string;
+    phone: string;
+    role: string;
+    password: string;
+    status: string;
+  }>) => {
+    return apiCall(`/center/staff/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(staffData),
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiCall(`/center/staff/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Date Slot API
+export const dateSlotApi = {
+  getAll: async () => {
+    return apiCall('/center/date-slots');
+  },
+
+  create: async (dateSlotData: {
+    date: string;
+    capacity: number;
+    status: string;
+  }) => {
+    return apiCall('/center/date-slots', {
+      method: 'POST',
+      body: JSON.stringify(dateSlotData),
+    });
+  },
+
+  update: async (id: string, dateSlotData: Partial<{
+    date: string;
+    capacity: number;
+    status: string;
+  }>) => {
+    return apiCall(`/center/date-slots/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(dateSlotData),
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiCall(`/center/date-slots/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Time Slot API
+export const timeSlotApi = {
+  getByDateSlot: async (dateSlotId: string) => {
+    return apiCall(`/center/date-slots/${dateSlotId}/time-slots`);
+  },
+
+  create: async (timeSlotData: {
+    dateSlotId: string;
+    time: string;
+    capacity: number;
+    assignedStaffId?: string;
+  }) => {
+    return apiCall('/center/time-slots', {
+      method: 'POST',
+      body: JSON.stringify(timeSlotData),
+    });
+  },
+
+  update: async (id: string, timeSlotData: Partial<{
+    time: string;
+    capacity: number;
+    assignedStaffId?: string | null;
+  }>) => {
+    return apiCall(`/center/time-slots/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(timeSlotData),
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiCall(`/center/time-slots/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};

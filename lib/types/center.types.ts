@@ -98,12 +98,16 @@ export interface TimeSlot {
 export interface Staff {
   _id?: string;
   id?: number;
+  staffId: string;
+  password: string;
   name: string;
   role: string;
   email?: string;
   phone?: string;
   status: 'active' | 'inactive';
   centerId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Form data types
@@ -121,18 +125,19 @@ export interface DateSlotFormData {
 }
 
 export interface StaffFormData {
+  staffId: string;
+  password: string;
   name: string;
-  role: string;
   email: string;
   phone: string;
-  status: 'active' | 'inactive';
+  role: string;
 }
 
 export interface TimeSlotFormData {
+  dateSlotId: string;
   time: string;
   capacity: number;
-  booked: number;
-  assignedStaffId: number | null;
+  assignedStaffId?: string;
 }
 
 // API Response types
@@ -142,3 +147,4 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
 }
+
