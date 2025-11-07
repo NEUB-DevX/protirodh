@@ -188,13 +188,13 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(data.data.user);
       } catch (error) {
         console.error("Auth check failed:", error);
-        logout();
+        // logout();
       } finally {
         setLoading(false);
       }
     };
     checkAuth();
-  }, [logout]);
+  }, []);
 
   return (
     <GlobalContext.Provider

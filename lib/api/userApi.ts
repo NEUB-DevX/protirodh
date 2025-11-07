@@ -66,7 +66,7 @@ export const userAuthApi = {
 // Vaccines API
 export const vaccinesApi = {
   getAll: async () => {
-    return apiCall("/user/vaccines");
+    return apiCall("/hub/vaccines");
   },
 
   getById: async (id: string) => {
@@ -89,14 +89,14 @@ export const centersApi = {
     if (district) params.append("district", district);
     if (upazila) params.append("upazila", upazila);
     
-    return apiCall(`/user/centers/nearby?${params.toString()}`);
+    return apiCall(`/hub/centers/`);
   },
 };
 
 // Date Slots API
 export const dateSlotsApi = {
   getByCenterId: async (centerId: string) => {
-    return apiCall(`/user/centers/${centerId}/date-slots`);
+    return apiCall(`/date-slots/`);
   },
 };
 
