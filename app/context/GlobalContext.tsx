@@ -10,7 +10,6 @@ import React, {
 } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { API_URL } from "../const/config";
 
 type User = {
   uid: string;
@@ -58,7 +57,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const verify_otp = async (idNumber: string, otp: string, type: "nid" | "bid") => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/auth/verify-otp`, {
+      const res = await fetch(`api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: idNumber, code: otp, type }),
@@ -118,7 +117,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        const res = await fetch(`${API_URL}/user/get-user`, {
+        const res = await fetch(`api/user/get-user`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
