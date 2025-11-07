@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FaSyringe, FaIdCard, FaKey, FaCheckCircle } from "react-icons/fa";
 import { useGlobal } from "../context/GlobalContext";
 import { toast } from "react-toastify";
+import { API_URL } from "../const/config";
 
 export default function Login() {
   const [step, setStep] = useState<"id" | "otp">("id");
@@ -34,7 +35,7 @@ export default function Login() {
     // TODO: Call API to send OTP
     console.log(idNumber);
     const response = await fetch(
-      "api/auth/send-otp",
+      `${API_URL}/auth/send-otp`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
