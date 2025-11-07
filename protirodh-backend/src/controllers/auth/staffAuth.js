@@ -60,14 +60,17 @@ export const staffLogin = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Staff login successful',
-      token,
-      user: {
-        id: staff._id,
-        staffId: staff.staffId,
-        name: staff.name,
-        role: staff.role,
-        centerId: staff.centerId
+      data: {
+        token,
+        user: {
+          id: staff._id,
+          staffId: staff.staffId,
+          name: staff.name,
+          role: staff.role,
+          centerId: staff.centerId
+        }
       }
+      
     });
   } catch (error) {
     console.error('Staff login error:', error);
