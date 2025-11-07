@@ -4,7 +4,6 @@ import createProtirodhPrompts from "../../prompts/protirodh_ai/responsePrompt.js
 
 export const handleAiRes = async (req, res) => {
   try {
-    const uid = req.uid;
 
     const { message, id, type } = req.body;
 

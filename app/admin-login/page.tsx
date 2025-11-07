@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { FaUser, FaLock, FaUserShield, FaHospital, FaUserMd } from "react-icons/fa";
-import { API_URL } from "../const/config";
 import { useGlobal } from "../context/GlobalContext";
 
 type Role = "hub" | "center" | "staff";
@@ -14,7 +12,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+
 
   const { admin_login } = useGlobal();
 
