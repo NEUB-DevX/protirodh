@@ -1,7 +1,7 @@
 "use client";
 
 import { useGlobal } from "@/app/context/GlobalContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaCalendarAlt,
   FaClock,
@@ -18,7 +18,12 @@ import {
   FaBook,
   FaSave,
   FaTimes,
+  FaEye,
+  FaEyeSlash,
+  FaCopy,
 } from "react-icons/fa";
+import { stockRequestApi, vaccineApi, profileApi, dashboardApi } from "@/lib/api/centerApi";
+import type { StockRequest, Vaccine, CenterProfile, CenterDashboard } from "@/lib/types/center.types";
 
 // TypeScript interfaces
 interface DateSlotForm {
@@ -32,6 +37,8 @@ interface StaffForm {
   role: string;
   email: string;
   phone: string;
+  staffId: string;
+  password: string;
   status: "active" | "inactive";
 }
 
@@ -60,6 +67,10 @@ interface Staff {
   id: number;
   name: string;
   role: string;
+  email?: string;
+  phone?: string;
+  staffId: string;
+  password: string;
   status: string;
 }
 
@@ -89,7 +100,67 @@ export default function CenterDashboard() {
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [editingTimeSlot, setEditingTimeSlot] = useState<TimeSlot | null>(null);
 
+  // Data states
+  const [vaccines, setVaccines] = useState<Vaccine[]>([]);
+  const [stockRequests, setStockRequests] = useState<StockRequest[]>([]);
+  const [centerProfile, setCenterProfile] = useState<CenterProfile | null>(null);
+  const [dashboard, setDashboard] = useState<CenterDashboard | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Password visibility state for each staff member
+  const [visiblePasswords, setVisiblePasswords] = useState<
+    Record<number, boolean>
+  >({});
+
   const { logout } = useGlobal();
+
+  // Load data on component mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [vaccinesRes, stockRes, profileRes, dashboardRes] = await Promise.all([
+        vaccineApi.getAll(),
+        stockRequestApi.getAll(),
+        profileApi.get(),
+        dashboardApi.get(),
+      ]);
+
+      if (vaccinesRes.data) setVaccines(vaccinesRes.data);
+      if (stockRes.data) setStockRequests(stockRes.data);
+      if (profileRes.data) setCenterProfile(profileRes.data);
+      if (dashboardRes.data) setDashboard(dashboardRes.data);
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Utility functions
+  const togglePasswordVisibility = (staffId: number) => {
+    setVisiblePasswords((prev) => ({
+      ...prev,
+      [staffId]: !prev[staffId],
+    }));
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(`${type} copied to clipboard!`);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+      alert("Failed to copy to clipboard");
+    }
+  };
 
   // Form states
   const [dateSlotForm, setDateSlotForm] = useState<DateSlotForm>({
@@ -103,6 +174,8 @@ export default function CenterDashboard() {
     role: "Vaccinator",
     email: "",
     phone: "",
+    staffId: "",
+    password: "",
     status: "active",
   });
 
@@ -145,8 +218,10 @@ export default function CenterDashboard() {
       setStaffForm({
         name: staff.name,
         role: staff.role,
-        email: "", // Add email field to mock data if needed
-        phone: "", // Add phone field to mock data if needed
+        email: staff.email || "",
+        phone: staff.phone || "",
+        staffId: staff.staffId,
+        password: staff.password,
         status: staff.status as "active" | "inactive",
       });
     } else {
@@ -155,20 +230,12 @@ export default function CenterDashboard() {
         role: "Vaccinator",
         email: "",
         phone: "",
+        staffId: "",
+        password: "",
         status: "active",
       });
     }
     setShowStaffModal(true);
-  };
-
-  const openStockRequestModal = (vaccine = "") => {
-    setStockRequestForm({
-      vaccine: vaccine,
-      quantity: 100,
-      urgency: "medium",
-      notes: "",
-    });
-    setShowStockRequestModal(true);
   };
 
   const closeDateSlotModal = () => {
@@ -185,6 +252,8 @@ export default function CenterDashboard() {
       role: "Vaccinator",
       email: "",
       phone: "",
+      staffId: "",
+      password: "",
       status: "active",
     });
   };
@@ -258,11 +327,22 @@ export default function CenterDashboard() {
     closeStaffModal();
   };
 
-  const handleStockRequestSubmit = (e: React.FormEvent) => {
+  const handleStockRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log("Stock Request Form Data:", stockRequestForm);
-    closeStockRequestModal();
+    try {
+      await stockRequestApi.create({
+        vaccine: stockRequestForm.vaccine,
+        quantity: stockRequestForm.quantity,
+        urgency: stockRequestForm.urgency,
+        notes: stockRequestForm.notes,
+      });
+      await loadAllData();
+      closeStockRequestModal();
+      alert('Stock request submitted successfully!');
+    } catch (err) {
+      console.error('Error submitting stock request:', err);
+      alert(err instanceof Error ? err.message : 'Failed to submit stock request');
+    }
   };
 
   const handleTimeSlotSubmit = (e: React.FormEvent) => {
@@ -279,43 +359,27 @@ export default function CenterDashboard() {
     closeTimeSlotModal();
   };
 
-  // Mock data
+  // Computed data from state
   const centerInfo = {
-    name: "Dhaka Medical College Center",
-    address: "Bakshibazar, Dhaka-1000",
-    dailyCapacity: 500,
-    staffCount: 12,
+    name: centerProfile?.name || "Loading...",
+    address: centerProfile?.address || "Loading...",
+    dailyCapacity: centerProfile?.capacity || 0,
+    staffCount: centerProfile?.staff || 0,
   };
 
+  // Mock stock data (to be replaced with real inventory data)
   const stockData = {
-    vaccines: [
-      {
-        name: "Pfizer-BioNTech",
-        total: 2000,
-        used: 1200,
-        remaining: 750,
-        wasted: 50,
-        temp: "-70°C",
-      },
-      {
-        name: "Moderna",
-        total: 1500,
-        used: 900,
-        remaining: 580,
-        wasted: 20,
-        temp: "-20°C",
-      },
-      {
-        name: "AstraZeneca",
-        total: 1000,
-        used: 600,
-        remaining: 390,
-        wasted: 10,
-        temp: "2-8°C",
-      },
-    ],
+    vaccines: vaccines.map((vaccine) => ({
+      name: vaccine.name,
+      total: 0, // To be calculated from inventory
+      used: 0, // To be calculated from vaccination records
+      remaining: 0, // To be calculated from inventory
+      wasted: 0, // To be calculated from wastage records
+      temp: vaccine.temperature,
+    })),
   };
 
+  // Mock data for schedule (to be replaced with real data)
   const dateSlots = [
     { date: "2024-11-08", capacity: 500, booked: 380, status: "active" },
     { date: "2024-11-09", capacity: 500, booked: 420, status: "active" },
@@ -369,10 +433,46 @@ export default function CenterDashboard() {
   ];
 
   const staffMembers = [
-    { id: 1, name: "Dr. Kamal Ahmed", role: "Vaccinator", status: "active" },
-    { id: 2, name: "Nurse Fatima Khan", role: "Vaccinator", status: "active" },
-    { id: 3, name: "Dr. Rahman", role: "Vaccinator", status: "active" },
-    { id: 4, name: "Nurse Sultana", role: "Vaccinator", status: "active" },
+    { 
+      id: 1, 
+      name: "Dr. Kamal Ahmed", 
+      role: "Vaccinator", 
+      email: "kamal@center.com",
+      phone: "+880 1711-123456",
+      staffId: "STAFF001",
+      password: "kamal@2024",
+      status: "active" 
+    },
+    { 
+      id: 2, 
+      name: "Nurse Fatima Khan", 
+      role: "Vaccinator", 
+      email: "fatima@center.com",
+      phone: "+880 1722-234567",
+      staffId: "STAFF002",
+      password: "fatima@2024",
+      status: "active" 
+    },
+    { 
+      id: 3, 
+      name: "Dr. Rahman", 
+      role: "Vaccinator", 
+      email: "rahman@center.com",
+      phone: "+880 1733-345678",
+      staffId: "STAFF003",
+      password: "rahman@2024",
+      status: "active" 
+    },
+    { 
+      id: 4, 
+      name: "Nurse Sultana", 
+      role: "Vaccinator", 
+      email: "sultana@center.com",
+      phone: "+880 1744-456789",
+      staffId: "STAFF004",
+      password: "sultana@2024",
+      status: "active" 
+    },
   ];
 
   const preservationGuidelines = [
@@ -436,6 +536,34 @@ export default function CenterDashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-600 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading center data...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+            <div className="flex items-center gap-2">
+              <FaExclamationTriangle className="text-red-600" />
+              <p className="text-red-800 font-medium">Error: {error}</p>
+            </div>
+            <button
+              onClick={loadAllData}
+              className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && (
+          <>
         {/* Stats Overview */}
         <div className="mb-8 grid gap-6 md:grid-cols-4">
           <div className="rounded-xl border border-green-200 bg-green-50 p-6">
@@ -459,9 +587,9 @@ export default function CenterDashboard() {
               <FaBoxes className="text-2xl text-blue-600" />
             </div>
             <p className="text-3xl font-bold text-blue-900">
-              {stockData.vaccines.reduce((sum, v) => sum + v.remaining, 0)}
+              {dashboard?.inventory.totalReceived || 0}
             </p>
-            <p className="mt-1 text-xs text-blue-600">Doses available</p>
+            <p className="mt-1 text-xs text-blue-600">Doses received</p>
           </div>
 
           <div className="rounded-xl border border-purple-200 bg-purple-50 p-6">
@@ -480,7 +608,7 @@ export default function CenterDashboard() {
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-red-700">
-                Wasted Doses
+                Pending Requests
               </span>
               <FaExclamationTriangle className="text-2xl text-red-600" />
             </div>
@@ -673,6 +801,85 @@ export default function CenterDashboard() {
                       <p className="text-sm text-gray-600">{staff.role}</p>
                     </div>
                   </div>
+
+                  {/* Staff Credentials */}
+                  <div className="mb-4 rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-3 text-sm font-medium text-gray-700">
+                      Login Credentials
+                    </h4>
+
+                    {/* Staff ID */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          Staff ID:
+                        </span>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(staff.staffId, "Staff ID")
+                          }
+                          className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                        >
+                          <FaCopy className="text-xs" />
+                          Copy
+                        </button>
+                      </div>
+                      <p className="font-mono text-sm font-semibold text-gray-900">
+                        {staff.staffId}
+                      </p>
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">Password:</span>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => togglePasswordVisibility(staff.id)}
+                            className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200"
+                          >
+                            {visiblePasswords[staff.id] ? (
+                              <FaEyeSlash className="text-xs" />
+                            ) : (
+                              <FaEye className="text-xs" />
+                            )}
+                            {visiblePasswords[staff.id] ? "Hide" : "Show"}
+                          </button>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(staff.password, "Password")
+                            }
+                            className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                          >
+                            <FaCopy className="text-xs" />
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                      <p className="font-mono text-sm font-semibold text-gray-900">
+                        {visiblePasswords[staff.id]
+                          ? staff.password
+                          : "••••••••••••"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Contact Info */}
+                  {(staff.email || staff.phone) && (
+                    <div className="mb-4 space-y-1 text-xs text-gray-600">
+                      {staff.email && (
+                        <p>
+                          <span className="font-medium">Email:</span> {staff.email}
+                        </p>
+                      )}
+                      {staff.phone && (
+                        <p>
+                          <span className="font-medium">Phone:</span> {staff.phone}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="mb-4">
                     <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
                       {staff.status}
@@ -699,81 +906,164 @@ export default function CenterDashboard() {
         {/* Stock Tab */}
         {activeTab === "stock" && (
           <div>
-            <h2 className="mb-6 text-2xl font-bold text-gray-900">
-              Stock Management
-            </h2>
-            <div className="space-y-6">
-              {stockData.vaccines.map((vaccine) => (
-                <div
-                  key={vaccine.name}
-                  className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">
-                        {vaccine.name}
-                      </h3>
-                      <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
-                        <FaThermometerHalf className="text-blue-600" />
-                        <span>Storage: {vaccine.temp}</span>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Stock Management
+              </h2>
+              <button
+                onClick={() => setShowStockRequestModal(true)}
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+              >
+                New Stock Request
+              </button>
+            </div>
+
+            {/* Stock Requests */}
+            <div className="mb-8">
+              <h3 className="mb-4 text-lg font-bold text-gray-900">
+                Stock Requests
+              </h3>
+              {stockRequests.length === 0 ? (
+                <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+                  <p className="text-gray-500">No stock requests yet</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {stockRequests.map((request) => (
+                    <div
+                      key={request._id}
+                      className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="mb-2 flex items-center gap-3">
+                            <h4 className="text-lg font-bold text-gray-900">
+                              {typeof request.vaccineId === "object"
+                                ? request.vaccineId.name
+                                : request.vaccine || "Unknown Vaccine"}
+                            </h4>
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                request.status === "approved"
+                                  ? "bg-green-100 text-green-700"
+                                  : request.status === "rejected"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {request.status.charAt(0).toUpperCase() +
+                                request.status.slice(1)}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p>
+                              <span className="font-semibold">Quantity:</span>{" "}
+                              {request.quantity} doses
+                            </p>
+                            {(request.reason || request.notes) && (
+                              <p>
+                                <span className="font-semibold">Reason:</span>{" "}
+                                {request.reason || request.notes}
+                              </p>
+                            )}
+                            {request.createdAt && (
+                              <p>
+                                <span className="font-semibold">
+                                  Requested:
+                                </span>{" "}
+                                {new Date(request.createdAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => openStockRequestModal(vaccine.name)}
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
-                    >
-                      Request Stock
-                    </button>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <div className="rounded-lg bg-blue-50 p-4">
-                      <p className="mb-1 text-xs text-blue-700">
-                        Total Received
-                      </p>
-                      <p className="text-2xl font-bold text-blue-900">
-                        {vaccine.total}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-green-50 p-4">
-                      <p className="mb-1 text-xs text-green-700">Used</p>
-                      <p className="text-2xl font-bold text-green-900">
-                        {vaccine.used}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-purple-50 p-4">
-                      <p className="mb-1 text-xs text-purple-700">Remaining</p>
-                      <p className="text-2xl font-bold text-purple-900">
-                        {vaccine.remaining}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-red-50 p-4">
-                      <p className="mb-1 text-xs text-red-700">Wasted</p>
-                      <p className="text-2xl font-bold text-red-900">
-                        {vaccine.wasted}
-                      </p>
-                      <p className="text-xs text-red-600">
-                        {((vaccine.wasted / vaccine.total) * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Usage Rate</span>
-                      <span className="font-semibold text-gray-900">
-                        {Math.round((vaccine.used / vaccine.total) * 100)}%
-                      </span>
-                    </div>
-                    <div className="h-3 w-full rounded-full bg-gray-200">
-                      <div
-                        className="h-3 rounded-full bg-linear-to-r from-green-500 to-blue-500"
-                        style={{
-                          width: `${(vaccine.used / vaccine.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
+            </div>
+
+            {/* Current Inventory */}
+            <div>
+              <h3 className="mb-4 text-lg font-bold text-gray-900">
+                Current Inventory
+              </h3>
+              <div className="space-y-6">
+                {stockData.vaccines.map((vaccine) => (
+                  <div
+                    key={vaccine.name}
+                    className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                  >
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {vaccine.name}
+                        </h3>
+                        <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
+                          <FaThermometerHalf className="text-blue-600" />
+                          <span>Storage: {vaccine.temp}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-4">
+                      <div className="rounded-lg bg-blue-50 p-4">
+                        <p className="mb-1 text-xs text-blue-700">
+                          Total Received
+                        </p>
+                        <p className="text-2xl font-bold text-blue-900">
+                          {vaccine.total}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-green-50 p-4">
+                        <p className="mb-1 text-xs text-green-700">Used</p>
+                        <p className="text-2xl font-bold text-green-900">
+                          {vaccine.used}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-purple-50 p-4">
+                        <p className="mb-1 text-xs text-purple-700">
+                          Remaining
+                        </p>
+                        <p className="text-2xl font-bold text-purple-900">
+                          {vaccine.remaining}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-red-50 p-4">
+                        <p className="mb-1 text-xs text-red-700">Wasted</p>
+                        <p className="text-2xl font-bold text-red-900">
+                          {vaccine.wasted}
+                        </p>
+                        <p className="text-xs text-red-600">
+                          {vaccine.total > 0
+                            ? ((vaccine.wasted / vaccine.total) * 100).toFixed(
+                                1
+                              )
+                            : 0}
+                          %
+                        </p>
+                      </div>
+                    </div>
+                    {vaccine.total > 0 && (
+                      <div className="mt-4">
+                        <div className="mb-1 flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Usage Rate</span>
+                          <span className="font-semibold text-gray-900">
+                            {Math.round((vaccine.used / vaccine.total) * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-3 w-full rounded-full bg-gray-200">
+                          <div
+                            className="h-3 rounded-full bg-linear-to-r from-green-500 to-blue-500"
+                            style={{
+                              width: `${(vaccine.used / vaccine.total) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -845,6 +1135,8 @@ export default function CenterDashboard() {
               ))}
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
 
@@ -1203,6 +1495,47 @@ export default function CenterDashboard() {
                     placeholder="Enter phone number"
                     required
                   />
+                </div>
+
+                <div className="rounded-lg bg-blue-50 p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-blue-900">
+                    Login Credentials
+                  </h4>
+                  
+                  <div className="mb-3">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Staff ID
+                    </label>
+                    <input
+                      type="text"
+                      value={staffForm.staffId}
+                      onChange={(e) =>
+                        setStaffForm({ ...staffForm, staffId: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                      placeholder="e.g., STAFF001"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Password
+                    </label>
+                    <input
+                      type="text"
+                      value={staffForm.password}
+                      onChange={(e) =>
+                        setStaffForm({ ...staffForm, password: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                      placeholder="Enter password"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      This password will be used for staff login
+                    </p>
+                  </div>
                 </div>
 
                 <div>
