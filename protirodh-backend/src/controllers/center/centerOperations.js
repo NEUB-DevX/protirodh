@@ -180,3 +180,112 @@ export const updateCenterProfile = async (req, res) => {
     });
   }
 };
+
+// Get stock request by ID
+export const getStockRequestById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const centerId = req.center.id;
+
+    const request = await StockRequest.findOne({ _id: id, centerId })
+      .populate('vaccineId', 'name manufacturer');
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: 'Stock request not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: request
+    });
+  } catch (error) {
+    console.error('Get stock request by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stock request'
+    });
+  }
+};
+
+// Get vaccine by ID
+export const getVaccineById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vaccine = await Vaccine.findOne({ _id: id, isActive: true });
+
+    if (!vaccine) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vaccine not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: vaccine
+    });
+  } catch (error) {
+    console.error('Get vaccine by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch vaccine'
+    });
+  }
+};
+
+// Get center dashboard
+export const getCenterDashboard = async (req, res) => {
+  try {
+    const centerId = req.center.id;
+
+    // Get center details
+    const center = await Center.findById(centerId);
+    
+    // Get stock request statistics
+    const totalRequests = await StockRequest.countDocuments({ centerId });
+    const pendingRequests = await StockRequest.countDocuments({ centerId, status: 'pending' });
+    const approvedRequests = await StockRequest.countDocuments({ centerId, status: 'approved' });
+    const fulfilledRequests = await StockRequest.countDocuments({ centerId, status: 'fulfilled' });
+
+    // Calculate total received stocks
+    const stockAggregation = await StockRequest.aggregate([
+      { $match: { centerId: center._id, status: 'fulfilled' } },
+      { $group: { _id: null, totalReceived: { $sum: '$approvedQuantity' } } }
+    ]);
+    const totalReceived = stockAggregation.length > 0 ? stockAggregation[0].totalReceived : 0;
+
+    const dashboard = {
+      center: {
+        name: center.name,
+        division: center.division,
+        capacity: center.capacity,
+        staff: center.staff,
+        status: center.status
+      },
+      stockRequests: {
+        total: totalRequests,
+        pending: pendingRequests,
+        approved: approvedRequests,
+        fulfilled: fulfilledRequests
+      },
+      inventory: {
+        totalReceived,
+        // Add more inventory details as needed
+      }
+    };
+
+    res.status(200).json({
+      success: true,
+      data: dashboard
+    });
+  } catch (error) {
+    console.error('Get center dashboard error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dashboard data'
+    });
+  }
+};

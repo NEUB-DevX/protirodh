@@ -401,3 +401,124 @@ export const getAllVaccineMovements = async (req, res) => {
     });
   }
 };
+
+// Get vaccine by ID
+export const getVaccineById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vaccine = await Vaccine.findById(id);
+
+    if (!vaccine) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vaccine not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: vaccine
+    });
+  } catch (error) {
+    console.error('Get vaccine by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch vaccine'
+    });
+  }
+};
+
+// Get center by ID
+export const getCenterById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const center = await Center.findById(id);
+
+    if (!center) {
+      return res.status(404).json({
+        success: false,
+        message: 'Center not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: center
+    });
+  } catch (error) {
+    console.error('Get center by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch center'
+    });
+  }
+};
+
+// Get stock request by ID
+export const getStockRequestById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await StockRequest.findById(id)
+      .populate('centerId', 'name address division')
+      .populate('vaccineId', 'name manufacturer');
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: 'Stock request not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: request
+    });
+  } catch (error) {
+    console.error('Get stock request by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stock request'
+    });
+  }
+};
+
+// Get dashboard analytics
+export const getDashboardAnalytics = async (req, res) => {
+  try {
+    // Get counts
+    const totalCenters = await Center.countDocuments();
+    const activeCenters = await Center.countDocuments({ status: 'active' });
+    const totalVaccines = await Vaccine.countDocuments({ isActive: true });
+    const pendingRequests = await StockRequest.countDocuments({ status: 'pending' });
+    
+    // Calculate total stocks (sum of all vaccine quantities in centers)
+    const stockAggregation = await StockRequest.aggregate([
+      { $match: { status: 'fulfilled' } },
+      { $group: { _id: null, totalStocks: { $sum: '$approvedQuantity' } } }
+    ]);
+    const totalStocks = stockAggregation.length > 0 ? stockAggregation[0].totalStocks : 0;
+
+    // Mock data for now (can be calculated from actual vaccination records later)
+    const analytics = {
+      totalVaccinated: 125000, // This should come from actual vaccination records
+      totalStocks: totalStocks || 50000,
+      wastage: 2.3, // Calculate from actual wastage records
+      coverage: 68.5, // Calculate from population data
+      totalCenters,
+      activeCenters,
+      totalVaccines,
+      pendingRequests
+    };
+
+    res.status(200).json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Get dashboard analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch analytics'
+    });
+  }
+};

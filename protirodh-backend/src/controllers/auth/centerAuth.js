@@ -155,3 +155,36 @@ export const verifyCenterToken = async (req, res) => {
     });
   }
 };
+
+// Center Logout
+export const centerLogout = async (req, res) => {
+  try {
+    // Since we're using JWT tokens (stateless), logout is handled on the client side
+    // by removing the token from localStorage
+    // This endpoint can be used for logging or tracking purposes
+    
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+        console.log(`Center ${decoded.centerName} logged out at ${new Date().toISOString()}`);
+      } catch {
+        // Token might be invalid or expired, but that's okay for logout
+        console.log('Logout attempted with invalid token');
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Logout successful'
+    });
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
