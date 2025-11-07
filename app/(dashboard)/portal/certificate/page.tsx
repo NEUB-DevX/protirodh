@@ -14,7 +14,7 @@ import {
   FaCalendarAlt,
   FaShieldAlt,
 } from "react-icons/fa";
-import { useGlobal } from "../../context/GlobalContext";
+import { useGlobal } from "../../../context/GlobalContext";
 
 export default function VaccinationCertificate() {
   const { user } = useGlobal();

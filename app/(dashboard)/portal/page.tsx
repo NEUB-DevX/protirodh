@@ -15,7 +15,7 @@ import {
   FaHourglassHalf,
   FaTimes,
 } from "react-icons/fa";
-import { useGlobal } from "../context/GlobalContext";
+import { useGlobal } from "../../context/GlobalContext";
 
 export default function Portal() {
 
