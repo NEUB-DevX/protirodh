@@ -20,6 +20,7 @@ import {
 export default function CenterDashboard() {
   const [activeTab, setActiveTab] = useState<"schedule" | "staff" | "stock" | "guidelines">("schedule");
   const [selectedDate, setSelectedDate] = useState("2024-11-08");
+  const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
 
   // Mock data
   const centerInfo = {
@@ -45,19 +46,55 @@ export default function CenterDashboard() {
   ];
 
   const timeSlots = [
-    { time: "09:00 AM - 10:00 AM", capacity: 50, booked: 45, appointments: 45 },
-    { time: "10:00 AM - 11:00 AM", capacity: 50, booked: 48, appointments: 48 },
-    { time: "11:00 AM - 12:00 PM", capacity: 50, booked: 42, appointments: 42 },
-    { time: "12:00 PM - 01:00 PM", capacity: 50, booked: 35, appointments: 35 },
-    { time: "02:00 PM - 03:00 PM", capacity: 50, booked: 40, appointments: 40 },
-    { time: "03:00 PM - 04:00 PM", capacity: 50, booked: 38, appointments: 38 },
+    { 
+      time: "09:00 AM - 10:00 AM", 
+      capacity: 50, 
+      booked: 45, 
+      appointments: 45,
+      assignedStaff: { id: 1, name: "Dr. Kamal Ahmed" }
+    },
+    { 
+      time: "10:00 AM - 11:00 AM", 
+      capacity: 50, 
+      booked: 48, 
+      appointments: 48,
+      assignedStaff: { id: 2, name: "Nurse Fatima Khan" }
+    },
+    { 
+      time: "11:00 AM - 12:00 PM", 
+      capacity: 50, 
+      booked: 42, 
+      appointments: 42,
+      assignedStaff: { id: 1, name: "Dr. Kamal Ahmed" }
+    },
+    { 
+      time: "12:00 PM - 01:00 PM", 
+      capacity: 50, 
+      booked: 35, 
+      appointments: 35,
+      assignedStaff: null
+    },
+    { 
+      time: "02:00 PM - 03:00 PM", 
+      capacity: 50, 
+      booked: 40, 
+      appointments: 40,
+      assignedStaff: { id: 3, name: "Dr. Rahman" }
+    },
+    { 
+      time: "03:00 PM - 04:00 PM", 
+      capacity: 50, 
+      booked: 38, 
+      appointments: 38,
+      assignedStaff: { id: 4, name: "Nurse Sultana" }
+    },
   ];
 
   const staffMembers = [
-    { id: 1, name: "Dr. Kamal Ahmed", role: "Vaccinator", assigned: 45, completed: 40, status: "active" },
-    { id: 2, name: "Nurse Fatima Khan", role: "Vaccinator", assigned: 48, completed: 48, status: "active" },
-    { id: 3, name: "Dr. Rahman", role: "Vaccinator", assigned: 42, completed: 38, status: "active" },
-    { id: 4, name: "Nurse Sultana", role: "Vaccinator", assigned: 35, completed: 32, status: "active" },
+    { id: 1, name: "Dr. Kamal Ahmed", role: "Vaccinator", status: "active" },
+    { id: 2, name: "Nurse Fatima Khan", role: "Vaccinator", status: "active" },
+    { id: 3, name: "Dr. Rahman", role: "Vaccinator", status: "active" },
+    { id: 4, name: "Nurse Sultana", role: "Vaccinator", status: "active" },
   ];
 
   const preservationGuidelines = [
@@ -263,7 +300,10 @@ export default function CenterDashboard() {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setSelectedDate(slot.date)}
+                        onClick={() => {
+                          setSelectedDate(slot.date);
+                          setShowTimeSlotModal(true);
+                        }}
                         className="flex-1 rounded-lg border border-green-300 bg-white px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
                       >
                         Manage Time Slots
@@ -274,66 +314,6 @@ export default function CenterDashboard() {
                       <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
                         <FaTrash />
                       </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Time Slots for Selected Date */}
-            <div>
-              <h3 className="mb-4 text-lg font-bold text-gray-900">
-                Time Slots for {selectedDate}
-              </h3>
-              <div className="mb-4">
-                <button className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
-                  <FaPlus />
-                  Add Time Slot
-                </button>
-              </div>
-              <div className="space-y-3">
-                {timeSlots.map((slot, index) => (
-                  <div key={index} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-1 items-center gap-4">
-                        <FaClock className="text-2xl text-green-600" />
-                        <div className="flex-1">
-                          <p className="font-bold text-gray-900">{slot.time}</p>
-                          <div className="mt-2 flex items-center gap-6">
-                            <div>
-                              <p className="text-xs text-gray-500">Capacity</p>
-                              <p className="font-semibold text-gray-900">{slot.capacity}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Booked</p>
-                              <p className="font-semibold text-gray-900">{slot.booked}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500">Appointments</p>
-                              <p className="font-semibold text-gray-900">{slot.appointments}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32">
-                          <div className="mb-1 text-right text-sm font-semibold text-gray-900">
-                            {Math.round((slot.booked / slot.capacity) * 100)}%
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-gray-200">
-                            <div
-                              className="h-2 rounded-full bg-green-600"
-                              style={{ width: `${(slot.booked / slot.capacity) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                        <button className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50">
-                          <FaEdit />
-                        </button>
-                        <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
-                          <FaTrash />
-                        </button>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -352,52 +332,31 @@ export default function CenterDashboard() {
                 Add Staff
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {staffMembers.map((staff) => (
                 <div key={staff.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-1 items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-                        <FaUserCircle className="text-3xl text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="mb-2 flex items-center justify-between">
-                          <div>
-                            <h3 className="font-bold text-gray-900">{staff.name}</h3>
-                            <p className="text-sm text-gray-600">{staff.role}</p>
-                          </div>
-                          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
-                            {staff.status}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="rounded-lg bg-blue-50 p-3">
-                            <p className="text-xs text-blue-700">Assigned</p>
-                            <p className="text-xl font-bold text-blue-900">{staff.assigned}</p>
-                          </div>
-                          <div className="rounded-lg bg-green-50 p-3">
-                            <p className="text-xs text-green-700">Completed</p>
-                            <p className="text-xl font-bold text-green-900">{staff.completed}</p>
-                          </div>
-                          <div className="rounded-lg bg-yellow-50 p-3">
-                            <p className="text-xs text-yellow-700">Pending</p>
-                            <p className="text-xl font-bold text-yellow-900">
-                              {staff.assigned - staff.completed}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+                      <FaUserCircle className="text-3xl text-green-600" />
                     </div>
-                    <div className="ml-4 flex gap-2">
-                      <button className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        <FaEdit className="inline mr-2" />
-                        Edit
-                      </button>
-                      <button className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">
-                        <FaTrash className="inline mr-2" />
-                        Remove
-                      </button>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900">{staff.name}</h3>
+                      <p className="text-sm text-gray-600">{staff.role}</p>
                     </div>
+                  </div>
+                  <div className="mb-4">
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                      {staff.status}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                      <FaEdit className="inline mr-2" />
+                      Edit
+                    </button>
+                    <button className="rounded-lg border border-red-300 bg-white p-2 text-sm font-medium text-red-700 hover:bg-red-50">
+                      <FaTrash />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -527,6 +486,155 @@ export default function CenterDashboard() {
           </div>
         )}
       </div>
+
+      {/* Time Slot Management Modal */}
+      {showTimeSlotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">Time Slots Management</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {selectedDate} •{" "}
+                    {new Date(selectedDate).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowTimeSlotModal(false)}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <div className="mb-6">
+                <button className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
+                  <FaPlus />
+                  Add Time Slot
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {timeSlots.map((slot, index) => (
+                  <div
+                    key={index}
+                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <div className="mb-4 flex items-start justify-between">
+                      <div className="flex flex-1 items-start gap-4">
+                        <FaClock className="mt-1 text-2xl text-green-600" />
+                        <div className="flex-1">
+                          <p className="font-bold text-gray-900">{slot.time}</p>
+                          <div className="mt-2 flex items-center gap-6">
+                            <div>
+                              <p className="text-xs text-gray-500">Capacity</p>
+                              <p className="font-semibold text-gray-900">{slot.capacity}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">Booked</p>
+                              <p className="font-semibold text-gray-900">{slot.booked}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">Appointments</p>
+                              <p className="font-semibold text-gray-900">{slot.appointments}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Assigned Staff */}
+                          <div className="mt-3">
+                            <p className="mb-2 text-xs font-medium text-gray-500">Assigned Staff:</p>
+                            {slot.assignedStaff ? (
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 rounded-lg bg-green-100 px-4 py-2">
+                                  <FaUserCircle className="text-lg text-green-600" />
+                                  <span className="font-medium text-green-900">{slot.assignedStaff.name}</span>
+                                </div>
+                                <button 
+                                  className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                                  title="Remove staff"
+                                >
+                                  <FaTrash className="text-xs" />
+                                </button>
+                                <button 
+                                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                  title="Change staff"
+                                >
+                                  Change
+                                </button>
+                              </div>
+                            ) : (
+                              <button className="flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">
+                                <FaPlus />
+                                Assign Staff to this slot
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="w-32">
+                          <div className="mb-1 text-right text-sm font-semibold text-gray-900">
+                            {Math.round((slot.booked / slot.capacity) * 100)}%
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-gray-200">
+                            <div
+                              className="h-2 rounded-full bg-green-600"
+                              style={{ width: `${(slot.booked / slot.capacity) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        <button className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50">
+                          <FaEdit />
+                        </button>
+                        <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 transition-colors hover:bg-red-50">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowTimeSlotModal(false)}
+                  className="rounded-lg border border-gray-300 bg-white px-6 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                <button className="rounded-lg bg-green-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-green-700">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
