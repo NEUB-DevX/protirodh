@@ -15,12 +15,240 @@ import {
   FaUserCircle,
   FaThermometerHalf,
   FaBook,
+  FaSave,
+  FaTimes,
 } from "react-icons/fa";
+
+// TypeScript interfaces
+interface DateSlotForm {
+  date: string;
+  capacity: number;
+  status: "active" | "closed";
+}
+
+interface StaffForm {
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  status: "active" | "inactive";
+}
+
+interface StockRequestForm {
+  vaccine: string;
+  quantity: number;
+  urgency: "low" | "medium" | "high";
+  notes: string;
+}
+
+interface TimeSlotForm {
+  time: string;
+  capacity: number;
+  booked: number;
+  assignedStaffId: number | null;
+}
+
+interface DateSlot {
+  date: string;
+  capacity: number;
+  booked: number;
+  status: "active" | "closed";
+}
+
+interface Staff {
+  id: number;
+  name: string;
+  role: string;
+  status: string;
+}
+
+interface TimeSlot {
+  time: string;
+  capacity: number;
+  booked: number;
+  appointments: number;
+  assignedStaff: { id: number; name: string } | null;
+}
 
 export default function CenterDashboard() {
   const [activeTab, setActiveTab] = useState<"schedule" | "staff" | "stock" | "guidelines">("schedule");
   const [selectedDate, setSelectedDate] = useState("2024-11-08");
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
+  
+  // Modal states
+  const [showDateSlotModal, setShowDateSlotModal] = useState(false);
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [showStockRequestModal, setShowStockRequestModal] = useState(false);
+  const [showTimeSlotEditModal, setShowTimeSlotEditModal] = useState(false);
+  
+  // Edit states
+  const [editingDateSlot, setEditingDateSlot] = useState<DateSlot | null>(null);
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [editingTimeSlot, setEditingTimeSlot] = useState<TimeSlot | null>(null);
+  
+  // Form states
+  const [dateSlotForm, setDateSlotForm] = useState<DateSlotForm>({
+    date: "",
+    capacity: 500,
+    status: "active"
+  });
+  
+  const [staffForm, setStaffForm] = useState<StaffForm>({
+    name: "",
+    role: "Vaccinator",
+    email: "",
+    phone: "",
+    status: "active"
+  });
+  
+  const [stockRequestForm, setStockRequestForm] = useState<StockRequestForm>({
+    vaccine: "",
+    quantity: 100,
+    urgency: "medium",
+    notes: ""
+  });
+
+  const [timeSlotForm, setTimeSlotForm] = useState<TimeSlotForm>({
+    time: "",
+    capacity: 50,
+    booked: 0,
+    assignedStaffId: null
+  });
+
+  // Modal handlers
+  const openDateSlotModal = (dateSlot?: DateSlot) => {
+    setEditingDateSlot(dateSlot || null);
+    if (dateSlot) {
+      setDateSlotForm({
+        date: dateSlot.date,
+        capacity: dateSlot.capacity,
+        status: dateSlot.status
+      });
+    } else {
+      setDateSlotForm({
+        date: "",
+        capacity: 500,
+        status: "active"
+      });
+    }
+    setShowDateSlotModal(true);
+  };
+
+  const openStaffModal = (staff?: Staff) => {
+    setEditingStaff(staff || null);
+    if (staff) {
+      setStaffForm({
+        name: staff.name,
+        role: staff.role,
+        email: "", // Add email field to mock data if needed
+        phone: "", // Add phone field to mock data if needed
+        status: staff.status as "active" | "inactive"
+      });
+    } else {
+      setStaffForm({
+        name: "",
+        role: "Vaccinator",
+        email: "",
+        phone: "",
+        status: "active"
+      });
+    }
+    setShowStaffModal(true);
+  };
+
+  const openStockRequestModal = (vaccine = "") => {
+    setStockRequestForm({
+      vaccine: vaccine,
+      quantity: 100,
+      urgency: "medium",
+      notes: ""
+    });
+    setShowStockRequestModal(true);
+  };
+
+  const closeDateSlotModal = () => {
+    setShowDateSlotModal(false);
+    setEditingDateSlot(null);
+    setDateSlotForm({ date: "", capacity: 500, status: "active" });
+  };
+
+  const closeStaffModal = () => {
+    setShowStaffModal(false);
+    setEditingStaff(null);
+    setStaffForm({ name: "", role: "Vaccinator", email: "", phone: "", status: "active" });
+  };
+
+  const closeStockRequestModal = () => {
+    setShowStockRequestModal(false);
+    setStockRequestForm({ vaccine: "", quantity: 100, urgency: "medium", notes: "" });
+  };
+
+  const openTimeSlotModal = (timeSlot?: TimeSlot) => {
+    setEditingTimeSlot(timeSlot || null);
+    if (timeSlot) {
+      setTimeSlotForm({
+        time: timeSlot.time,
+        capacity: timeSlot.capacity,
+        booked: timeSlot.booked,
+        assignedStaffId: timeSlot.assignedStaff ? timeSlot.assignedStaff.id : null
+      });
+    } else {
+      setTimeSlotForm({
+        time: "",
+        capacity: 50,
+        booked: 0,
+        assignedStaffId: null
+      });
+    }
+    setShowTimeSlotEditModal(true);
+  };
+
+  const closeTimeSlotModal = () => {
+    setShowTimeSlotEditModal(false);
+    setEditingTimeSlot(null);
+    setTimeSlotForm({ time: "", capacity: 50, booked: 0, assignedStaffId: null });
+  };
+
+  // Form submit handlers
+  const handleDateSlotSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your backend
+    if (editingDateSlot) {
+      console.log("Updating Date Slot:", { ...editingDateSlot, ...dateSlotForm });
+    } else {
+      console.log("Creating New Date Slot:", dateSlotForm);
+    }
+    closeDateSlotModal();
+  };
+
+  const handleStaffSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your backend
+    if (editingStaff) {
+      console.log("Updating Staff:", { ...editingStaff, ...staffForm });
+    } else {
+      console.log("Creating New Staff:", staffForm);
+    }
+    closeStaffModal();
+  };
+
+  const handleStockRequestSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your backend
+    console.log("Stock Request Form Data:", stockRequestForm);
+    closeStockRequestModal();
+  };
+
+  const handleTimeSlotSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your backend
+    if (editingTimeSlot) {
+      console.log("Updating Time Slot:", { ...editingTimeSlot, ...timeSlotForm });
+    } else {
+      console.log("Creating New Time Slot:", timeSlotForm);
+    }
+    closeTimeSlotModal();
+  };
 
   // Mock data
   const centerInfo = {
@@ -223,7 +451,10 @@ export default function CenterDashboard() {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Schedule Management</h2>
-              <button className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700">
+              <button 
+                onClick={() => openDateSlotModal()}
+                className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
+              >
                 <FaPlus />
                 Add Date Slot
               </button>
@@ -308,7 +539,10 @@ export default function CenterDashboard() {
                       >
                         Manage Time Slots
                       </button>
-                      <button className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50">
+                      <button 
+                        onClick={() => openDateSlotModal(slot as DateSlot)}
+                        className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50"
+                      >
                         <FaEdit />
                       </button>
                       <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
@@ -327,7 +561,10 @@ export default function CenterDashboard() {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Staff Management</h2>
-              <button className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700">
+              <button 
+                onClick={() => openStaffModal()}
+                className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
+              >
                 <FaPlus />
                 Add Staff
               </button>
@@ -350,7 +587,10 @@ export default function CenterDashboard() {
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <button className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <button 
+                      onClick={() => openStaffModal(staff)}
+                      className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
                       <FaEdit className="inline mr-2" />
                       Edit
                     </button>
@@ -379,7 +619,10 @@ export default function CenterDashboard() {
                         <span>Storage: {vaccine.temp}</span>
                       </div>
                     </div>
-                    <button className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+                    <button 
+                      onClick={() => openStockRequestModal(vaccine.name)}
+                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                    >
                       Request Stock
                     </button>
                   </div>
@@ -530,7 +773,10 @@ export default function CenterDashboard() {
             {/* Modal Content */}
             <div className="p-6">
               <div className="mb-6">
-                <button className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
+                <button 
+                  onClick={() => openTimeSlotModal()}
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                >
                   <FaPlus />
                   Add Time Slot
                 </button>
@@ -605,7 +851,10 @@ export default function CenterDashboard() {
                             />
                           </div>
                         </div>
-                        <button className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50">
+                        <button 
+                          onClick={() => openTimeSlotModal(slot)}
+                          className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50"
+                        >
                           <FaEdit />
                         </button>
                         <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 transition-colors hover:bg-red-50">
@@ -632,6 +881,419 @@ export default function CenterDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Date Slot Modal */}
+      {showDateSlotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingDateSlot ? "Edit Date Slot" : "Add Date Slot"}
+                </h3>
+                <button
+                  onClick={closeDateSlotModal}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleDateSlotSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateSlotForm.date}
+                    onChange={(e) => setDateSlotForm({...dateSlotForm, date: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Daily Capacity
+                  </label>
+                  <input
+                    type="number"
+                    value={dateSlotForm.capacity}
+                    onChange={(e) => setDateSlotForm({...dateSlotForm, capacity: parseInt(e.target.value)})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={dateSlotForm.status}
+                    onChange={(e) => setDateSlotForm({...dateSlotForm, status: e.target.value as "active" | "closed"})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="active">Active</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={closeDateSlotModal}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
+                >
+                  <FaSave />
+                  {editingDateSlot ? "Update Date Slot" : "Save Date Slot"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Staff Modal */}
+      {showStaffModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingStaff ? "Edit Staff Member" : "Add Staff Member"}
+                </h3>
+                <button
+                  onClick={closeStaffModal}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleStaffSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={staffForm.name}
+                    onChange={(e) => setStaffForm({...staffForm, name: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="Enter full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Role
+                  </label>
+                  <select
+                    value={staffForm.role}
+                    onChange={(e) => setStaffForm({...staffForm, role: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="Vaccinator">Vaccinator</option>
+                    <option value="Nurse">Nurse</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Administrator">Administrator</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={staffForm.email}
+                    onChange={(e) => setStaffForm({...staffForm, email: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="Enter email address"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={staffForm.phone}
+                    onChange={(e) => setStaffForm({...staffForm, phone: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={staffForm.status}
+                    onChange={(e) => setStaffForm({...staffForm, status: e.target.value as "active" | "inactive"})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={closeStaffModal}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
+                >
+                  <FaSave />
+                  {editingStaff ? "Update Staff" : "Add Staff"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stock Request Modal */}
+      {showStockRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Request Vaccine Stock</h3>
+                <button
+                  onClick={closeStockRequestModal}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleStockRequestSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vaccine Type
+                  </label>
+                  <select
+                    value={stockRequestForm.vaccine}
+                    onChange={(e) => setStockRequestForm({...stockRequestForm, vaccine: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    required
+                  >
+                    <option value="">Select vaccine type</option>
+                    <option value="Pfizer-BioNTech">Pfizer-BioNTech</option>
+                    <option value="Moderna">Moderna</option>
+                    <option value="AstraZeneca">AstraZeneca</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity (Doses)
+                  </label>
+                  <input
+                    type="number"
+                    value={stockRequestForm.quantity}
+                    onChange={(e) => setStockRequestForm({...stockRequestForm, quantity: parseInt(e.target.value)})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    min="1"
+                    placeholder="Enter quantity"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Urgency Level
+                  </label>
+                  <select
+                    value={stockRequestForm.urgency}
+                    onChange={(e) => setStockRequestForm({...stockRequestForm, urgency: e.target.value as "low" | "medium" | "high"})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="low">Low - Within 2 weeks</option>
+                    <option value="medium">Medium - Within 1 week</option>
+                    <option value="high">High - Within 2-3 days</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Notes
+                  </label>
+                  <textarea
+                    value={stockRequestForm.notes}
+                    onChange={(e) => setStockRequestForm({...stockRequestForm, notes: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    rows={3}
+                    placeholder="Any additional information or special requirements..."
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={closeStockRequestModal}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
+                >
+                  <FaBoxes />
+                  Submit Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Time Slot Modal */}
+      {showTimeSlotEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingTimeSlot ? "Edit Time Slot" : "Add Time Slot"}
+                </h3>
+                <button
+                  onClick={closeTimeSlotModal}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleTimeSlotSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Time Slot
+                  </label>
+                  <input
+                    type="text"
+                    value={timeSlotForm.time}
+                    onChange={(e) => setTimeSlotForm({...timeSlotForm, time: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="e.g., 09:00 AM - 10:00 AM"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Capacity
+                  </label>
+                  <input
+                    type="number"
+                    value={timeSlotForm.capacity}
+                    onChange={(e) => setTimeSlotForm({...timeSlotForm, capacity: parseInt(e.target.value)})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                {editingTimeSlot && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Bookings
+                    </label>
+                    <input
+                      type="number"
+                      value={timeSlotForm.booked}
+                      onChange={(e) => setTimeSlotForm({...timeSlotForm, booked: parseInt(e.target.value)})}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                      min="0"
+                      max={timeSlotForm.capacity}
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assigned Staff
+                  </label>
+                  <select
+                    value={timeSlotForm.assignedStaffId || ""}
+                    onChange={(e) => setTimeSlotForm({...timeSlotForm, assignedStaffId: e.target.value ? parseInt(e.target.value) : null})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="">No staff assigned</option>
+                    {staffMembers.map((staff) => (
+                      <option key={staff.id} value={staff.id}>
+                        {staff.name} ({staff.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={closeTimeSlotModal}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
+                >
+                  <FaSave />
+                  {editingTimeSlot ? "Update Time Slot" : "Add Time Slot"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
