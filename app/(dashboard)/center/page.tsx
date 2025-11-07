@@ -29,6 +29,7 @@ import {
   dashboardApi,
   staffApi,
   dateSlotApi,
+  timeSlotApi,
 } from "@/lib/api/centerApi";
 import type {
   StockRequest,
@@ -64,10 +65,11 @@ interface StockRequestForm {
 }
 
 interface TimeSlotForm {
-  time: string;
+  startTime: string;
+  endTime: string;
   capacity: number;
   booked: number;
-  assignedStaffId: number | null;
+  assignedStaffId: string | null;
 }
 
 interface DateSlot {
@@ -91,11 +93,14 @@ interface Staff {
 }
 
 interface TimeSlot {
+  _id?: string;
+  id?: string;
   time: string;
   capacity: number;
   booked: number;
   appointments: number;
   assignedStaff: { id: number; name: string } | null;
+  dateSlotId?: string;
 }
 
 export default function CenterDashboard() {
@@ -103,6 +108,7 @@ export default function CenterDashboard() {
     "schedule" | "staff" | "stock" | "guidelines"
   >("schedule");
   const [selectedDate, setSelectedDate] = useState("2024-11-08");
+  const [selectedDateSlotId, setSelectedDateSlotId] = useState<string | null>(null);
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
 
   // Modal states
@@ -125,6 +131,7 @@ export default function CenterDashboard() {
   const [dashboard, setDashboard] = useState<CenterDashboard | null>(null);
   const [staffList, setStaffList] = useState<StaffType[]>([]);
   const [dateSlotsList, setDateSlotsList] = useState<DateSlotType[]>([]);
+  const [timeSlotsList, setTimeSlotsList] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // const [centerId, setCenterId] = useState<string>("");
@@ -180,6 +187,19 @@ export default function CenterDashboard() {
     loadAllData();
   }, [loadAllData]);
 
+  // Load time slots for selected date slot
+  const loadTimeSlots = useCallback(async (dateSlotId: string) => {
+    try {
+      const timeSlotsRes = await timeSlotApi.getByDateSlot(dateSlotId);
+      if (timeSlotsRes.data) {
+        setTimeSlotsList(timeSlotsRes.data);
+      }
+    } catch (err) {
+      console.error("Error loading time slots:", err);
+      setError(err instanceof Error ? err.message : "Failed to load time slots");
+    }
+  }, []);
+
   // Utility functions
   const togglePasswordVisibility = (staffId: number) => {
     setVisiblePasswords((prev) => ({
@@ -223,7 +243,8 @@ export default function CenterDashboard() {
   });
 
   const [timeSlotForm, setTimeSlotForm] = useState<TimeSlotForm>({
-    time: "",
+    startTime: "",
+    endTime: "",
     capacity: 50,
     booked: 0,
     assignedStaffId: null,
@@ -304,20 +325,33 @@ export default function CenterDashboard() {
     });
   };
 
-  const openTimeSlotModal = (timeSlot?: TimeSlot) => {
+  const openTimeSlotModal = (timeSlot?: TimeSlot & { startTime?: string; endTime?: string }) => {
     setEditingTimeSlot(timeSlot || null);
     if (timeSlot) {
+      // Parse the time string (format: "HH:MM-HH:MM") or use provided startTime/endTime
+      let startTime = '';
+      let endTime = '';
+      
+      if (timeSlot.startTime && timeSlot.endTime) {
+        startTime = timeSlot.startTime;
+        endTime = timeSlot.endTime;
+      } else if (timeSlot.time) {
+        [startTime, endTime] = timeSlot.time.split('-');
+      }
+      
       setTimeSlotForm({
-        time: timeSlot.time,
+        startTime,
+        endTime,
         capacity: timeSlot.capacity,
         booked: timeSlot.booked,
         assignedStaffId: timeSlot.assignedStaff
-          ? timeSlot.assignedStaff.id
+          ? timeSlot.assignedStaff.id.toString()
           : null,
       });
     } else {
       setTimeSlotForm({
-        time: "",
+        startTime: "",
+        endTime: "",
         capacity: 50,
         booked: 0,
         assignedStaffId: null,
@@ -330,7 +364,8 @@ export default function CenterDashboard() {
     setShowTimeSlotEditModal(false);
     setEditingTimeSlot(null);
     setTimeSlotForm({
-      time: "",
+      startTime: "",
+      endTime: "",
       capacity: 50,
       booked: 0,
       assignedStaffId: null,
@@ -425,18 +460,44 @@ export default function CenterDashboard() {
     }
   };
 
-  const handleTimeSlotSubmit = (e: React.FormEvent) => {
+  const handleTimeSlotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    if (editingTimeSlot) {
-      console.log("Updating Time Slot:", {
-        ...editingTimeSlot,
-        ...timeSlotForm,
-      });
-    } else {
-      console.log("Creating New Time Slot:", timeSlotForm);
+    try {
+      if (!selectedDateSlotId) {
+        alert("No date slot selected. Please select a date first.");
+        return;
+      }
+
+      // Validation
+      if (timeSlotForm.startTime >= timeSlotForm.endTime) {
+        alert("Start time must be before end time.");
+        return;
+      }
+
+      const timeSlotData = {
+        dateSlotId: selectedDateSlotId,
+        time: `${timeSlotForm.startTime}-${timeSlotForm.endTime}`,
+        capacity: timeSlotForm.capacity,
+        assignedStaffId: timeSlotForm.assignedStaffId || undefined,
+      };
+
+      if (editingTimeSlot) {
+        // For updating, we need the time slot ID (this would need to be added to the TimeSlot interface)
+        console.log("Updating Time Slot:", {
+          ...editingTimeSlot,
+          ...timeSlotForm,
+        });
+        alert("Time slot update functionality will be implemented soon.");
+      } else {
+        await timeSlotApi.create(timeSlotData);
+        alert("Time slot created successfully!");
+        await loadTimeSlots(selectedDateSlotId);
+      }
+      closeTimeSlotModal();
+    } catch (err) {
+      console.error("Error saving time slot:", err);
+      alert(err instanceof Error ? err.message : "Failed to save time slot");
     }
-    closeTimeSlotModal();
   };
 
   // Computed data from state
@@ -737,7 +798,11 @@ export default function CenterDashboard() {
                           <button
                             onClick={() => {
                               setSelectedDate(slot.date);
+                              setSelectedDateSlotId(slot._id || slot.date);
                               setShowTimeSlotModal(true);
+                              if (slot._id) {
+                                loadTimeSlots(slot._id);
+                              }
                             }}
                             className="flex-1 rounded-lg border border-green-300 bg-white px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
                           >
@@ -1221,7 +1286,11 @@ export default function CenterDashboard() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowTimeSlotModal(false)}
+                  onClick={() => {
+                    setShowTimeSlotModal(false);
+                    setTimeSlotsList([]);
+                    setSelectedDateSlotId(null);
+                  }}
                   className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                 >
                   <svg
@@ -1254,15 +1323,91 @@ export default function CenterDashboard() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-12">
-                  <FaClock className="mb-3 text-4xl text-gray-400" />
-                  <p className="text-lg font-semibold text-gray-700">
-                    Time Slots Management
-                  </p>
-                  <p className="mt-2 text-center text-sm text-gray-500">
-                    Time slots feature will be integrated with the backend soon.
-                  </p>
-                </div>
+                {timeSlotsList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-12">
+                    <FaClock className="mb-3 text-4xl text-gray-400" />
+                    <p className="text-lg font-semibold text-gray-700">
+                      No Time Slots Yet
+                    </p>
+                    <p className="mt-2 text-center text-sm text-gray-500">
+                      Create your first time slot for this date using the Add Time Slot button above.
+                    </p>
+                  </div>
+                ) : (
+                  timeSlotsList.map((timeSlot, index) => {
+                    // Parse the time field (format: "HH:MM-HH:MM")
+                    const [startTime, endTime] = timeSlot.time ? timeSlot.time.split('-') : ['', ''];
+                    
+                    return (
+                    <div
+                      key={index}
+                      className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FaClock className="text-2xl text-blue-600" />
+                          <div>
+                            <h4 className="font-bold text-gray-900">
+                              {startTime} - {endTime}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {timeSlot.booked} / {timeSlot.capacity} appointments
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => openTimeSlotModal({
+                              ...timeSlot,
+                              startTime,
+                              endTime
+                            } as TimeSlot & { startTime: string; endTime: string })}
+                            className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                      {timeSlot.assignedStaff && (
+                        <div className="mt-3 rounded-lg bg-green-50 p-3">
+                          <p className="text-sm text-green-700">
+                            <span className="font-semibold">Assigned Staff:</span>{" "}
+                            {timeSlot.assignedStaff.name}
+                          </p>
+                        </div>
+                      )}
+                      <div className="mt-3">
+                        <div className="mb-1 flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Occupancy</span>
+                          <span className="font-semibold text-gray-900">
+                            {timeSlot.capacity > 0
+                              ? Math.round((timeSlot.booked / timeSlot.capacity) * 100)
+                              : 0}
+                            %
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-gray-200">
+                          <div
+                            className="h-2 rounded-full bg-blue-600"
+                            style={{
+                              width: `${
+                                timeSlot.capacity > 0
+                                  ? (timeSlot.booked / timeSlot.capacity) * 100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -1270,14 +1415,18 @@ export default function CenterDashboard() {
             <div className="sticky bottom-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
               <div className="flex justify-end gap-3">
                 <button
-                  onClick={() => setShowTimeSlotModal(false)}
+                  onClick={() => {
+                    setShowTimeSlotModal(false);
+                    setTimeSlotsList([]);
+                    setSelectedDateSlotId(null);
+                  }}
                   className="rounded-lg border border-gray-300 bg-white px-6 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Close
                 </button>
-                <button className="rounded-lg bg-green-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-green-700">
+                {/* <button className="rounded-lg bg-green-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-green-700">
                   Save Changes
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
@@ -1700,20 +1849,35 @@ export default function CenterDashboard() {
             {/* Modal Content */}
             <form onSubmit={handleTimeSlotSubmit} className="p-6">
               <div className="space-y-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Time Slot
-                  </label>
-                  <input
-                    type="text"
-                    value={timeSlotForm.time}
-                    onChange={(e) =>
-                      setTimeSlotForm({ ...timeSlotForm, time: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
-                    placeholder="e.g., 09:00 AM - 10:00 AM"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      value={timeSlotForm.startTime}
+                      onChange={(e) =>
+                        setTimeSlotForm({ ...timeSlotForm, startTime: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      End Time
+                    </label>
+                    <input
+                      type="time"
+                      value={timeSlotForm.endTime}
+                      onChange={(e) =>
+                        setTimeSlotForm({ ...timeSlotForm, endTime: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -1765,9 +1929,7 @@ export default function CenterDashboard() {
                     onChange={(e) =>
                       setTimeSlotForm({
                         ...timeSlotForm,
-                        assignedStaffId: e.target.value
-                          ? parseInt(e.target.value)
-                          : null,
+                        assignedStaffId: e.target.value || null,
                       })
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none"

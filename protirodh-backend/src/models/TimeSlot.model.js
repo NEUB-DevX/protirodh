@@ -12,7 +12,11 @@ const timeSlotSchema = new mongoose.Schema(
       ref: 'DateSlot',
       required: true
     },
-    time: {
+    startTime: {
+      type: String,
+      required: true
+    },
+    endTime: {
       type: String,
       required: true
     },

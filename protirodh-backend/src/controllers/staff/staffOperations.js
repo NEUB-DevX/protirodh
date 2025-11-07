@@ -6,7 +6,6 @@ import { DateSlot } from '../../models/DateSlot.model.js';
 export const getStaffProfile = async (req, res) => {
   try {
     const staff = await req.staff;
-    console.log(staff, "st")
 
     await staff.populate('centerId', 'name address');
 
@@ -106,7 +105,7 @@ export const getStaffAppointments = async (req, res) => {
     let appointments = await Appointment.find(query)
       .populate('userId', 'nid name contact')
       .populate('vaccineId', 'name manufacturer')
-      .populate('timeSlotId', 'time')
+      .populate('timeSlotId', 'startTime endTime')
       .sort({ time: 1 });
 
     // Apply search filter if provided
@@ -145,7 +144,7 @@ export const getAppointmentById = async (req, res) => {
     const appointment = await Appointment.findOne({ _id: id, staffId })
       .populate('userId', 'nid name contact dob gender b_group')
       .populate('vaccineId', 'name manufacturer doses temperature description')
-      .populate('timeSlotId', 'time capacity')
+      .populate('timeSlotId', 'startTime endTime capacity')
       .populate('dateSlotId', 'date')
       .populate('completedBy', 'name staffId');
 
