@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useGlobal } from "@/app/context/GlobalContext";
 import {
   FaSyringe,
   FaArrowLeft,
@@ -10,134 +11,37 @@ import {
   FaClock,
   FaMapMarkerAlt,
 } from "react-icons/fa";
-
-const availableVaccines = [
-  {
-    id: "pfizer",
-    name: "Pfizer-BioNTech",
-    description: "mRNA vaccine, highly effective against COVID-19",
-    availability: "Available",
-    doses: 2,
-  },
-  {
-    id: "moderna",
-    name: "Moderna",
-    description: "mRNA vaccine with strong protection",
-    availability: "Available",
-    doses: 2,
-  },
-  {
-    id: "astrazeneca",
-    name: "AstraZeneca",
-    description: "Viral vector vaccine, widely used",
-    availability: "Limited",
-    doses: 2,
-  },
-];
-
-const vaccinationCenters = [
-  {
-    id: "vc001",
-    name: "Dhaka Medical College Vaccination Center",
-    address: "Bakshibazar, Dhaka-1000",
-    division: "Dhaka",
-    zila: "Dhaka",
-    upzila: "Mohammadpur",
-  },
-  {
-    id: "vc002",
-    name: "Chittagong Medical College Center",
-    address: "K.B. Fazlul Kader Road, Chittagong",
-    division: "Chittagong",
-    zila: "Chittagong",
-    upzila: "Panchlaish",
-  },
-  {
-    id: "vc003",
-    name: "Rajshahi Medical College Center",
-    address: "Laxmipur, Rajshahi",
-    division: "Rajshahi",
-    zila: "Rajshahi",
-    upzila: "Boalia",
-  },
-  {
-    id: "vc004",
-    name: "Mirpur Community Health Center",
-    address: "Mirpur-10, Dhaka",
-    division: "Dhaka",
-    zila: "Dhaka",
-    upzila: "Mirpur",
-  },
-  {
-    id: "vc005",
-    name: "Uttara Modern Medical Center",
-    address: "Sector-7, Uttara, Dhaka",
-    division: "Dhaka",
-    zila: "Dhaka",
-    upzila: "Uttara",
-  },
-];
-
-// Mock function to get available date slots for a center
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getAvailableDateSlots = (_centerId: string) => {
-  const today = new Date();
-  const slots: Array<{
-    id: string;
-    date: string;
-    available: boolean;
-    slotsLeft: number;
-  }> = [];
-  for (let i = 1; i <= 14; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    // Mock: Skip some dates to simulate unavailability
-    if (i !== 3 && i !== 7 && i !== 10) {
-      slots.push({
-        id: `date-${i}`,
-        date: date.toISOString().split("T")[0],
-        available: true,
-        slotsLeft: Math.floor(Math.random() * 20) + 5,
-      });
-    }
-  }
-  return slots;
-};
-
-// Mock function to get time slots for a specific date
-const getTimeSlots = (_centerId: string, date: string) => {
-  // Mock: Return different availability based on date
-  const dayOfWeek = new Date(date).getDay();
-  return [
-    { id: "slot1", time: "9:00 AM - 10:00 AM", available: dayOfWeek !== 0 },
-    { id: "slot2", time: "10:00 AM - 11:00 AM", available: true },
-    { id: "slot3", time: "11:00 AM - 12:00 PM", available: dayOfWeek !== 5 },
-    { id: "slot4", time: "12:00 PM - 1:00 PM", available: true },
-    { id: "slot5", time: "2:00 PM - 3:00 PM", available: dayOfWeek !== 6 },
-    { id: "slot6", time: "3:00 PM - 4:00 PM", available: true },
-    { id: "slot7", time: "4:00 PM - 5:00 PM", available: dayOfWeek !== 0 },
-  ];
-};
+import {
+  vaccinesApi,
+  centersApi,
+  dateSlotsApi,
+  timeSlotsApi,
+  appointmentsApi,
+} from "@/lib/api/userApi";
+import type {
+  Vaccine,
+  Center,
+  DateSlot,
+  TimeSlot,
+  AppointmentFormData,
+} from "@/lib/types/user.types";
 
 export default function ApplyVaccine() {
   const router = useRouter();
+  const { user } = useGlobal();
+  
   const [step, setStep] = useState(1);
   const [showManualCenterForm, setShowManualCenterForm] = useState(false);
-  const [availableDates, setAvailableDates] = useState<
-    Array<{
-      id: string;
-      date: string;
-      available: boolean;
-      slotsLeft: number;
-    }>
-  >([]);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<
-    Array<{
-      id: string;
-      time: string;
-      available: boolean;
-    }>
-  >([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Data states
+  const [vaccines, setVaccines] = useState<Vaccine[]>([]);
+  const [suggestedCenters, setSuggestedCenters] = useState<Center[]>([]);
+  const [otherCenters, setOtherCenters] = useState<Center[]>([]);
+  const [availableDates, setAvailableDates] = useState<DateSlot[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+
   const [formData, setFormData] = useState({
     vaccine: "",
     doseNumber: "",
@@ -152,32 +56,111 @@ export default function ApplyVaccine() {
     manualCenterUpzila: "",
   });
 
-  // Mock user data - get from localStorage in real app
-  const userData = {
-    division: "Dhaka",
-    zila: "Dhaka",
-    upzila: "Mirpur",
-  };
+  const loadVaccines = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await vaccinesApi.getAll();
+      if (response.data) {
+        setVaccines(response.data.filter((vaccine: Vaccine) => vaccine.isActive));
+      }
+    } catch (err) {
+      console.error("Error loading vaccines:", err);
+      setError("Failed to load vaccines. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Get suggested centers based on user location
-  const suggestedCenters = vaccinationCenters.filter(
-    (center) =>
-      center.division === userData.division &&
-      (center.zila === userData.zila || center.upzila === userData.upzila)
-  );
+  const loadCenters = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      if (user?.contact?.division) {
+        // Load nearby centers based on user location
+        const nearbyResponse = await centersApi.getNearby(
+          user.contact.division,
+          user.contact.zila,
+          user.contact.upzila
+        );
+        
+        if (nearbyResponse.data) {
+          setSuggestedCenters(nearbyResponse.data);
+        }
+      }
 
-  const otherCenters = vaccinationCenters.filter(
-    (center) => !suggestedCenters.includes(center)
-  );
+      // Load all centers
+      const allResponse = await centersApi.getAll();
+      if (allResponse.data) {
+        const allCenters = allResponse.data.filter((center: Center) => center.status === "active");
+        const suggested = suggestedCenters.map(c => c._id);
+        setOtherCenters(allCenters.filter((center: Center) => !suggested.includes(center._id)));
+      }
+    } catch (err) {
+      console.error("Error loading centers:", err);
+      setError("Failed to load vaccination centers. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user, suggestedCenters]);
 
-  // Update available dates when center is selected
-  const handleCenterSelect = (centerId: string) => {
-    setFormData({ ...formData, center: centerId, date: "", timeSlot: "" });
-    setShowManualCenterForm(false);
-    const dates = getAvailableDateSlots(centerId);
-    setAvailableDates(dates);
-    setAvailableTimeSlots([]);
-  };
+  // Load vaccines on component mount
+  useEffect(() => {
+    loadVaccines();
+  }, [loadVaccines]);
+
+  // Load centers when step changes to 3
+  useEffect(() => {
+    if (step === 3) {
+      loadCenters();
+    }
+  }, [step, loadCenters]);
+
+  // Load available dates when center is selected
+  const handleCenterSelect = useCallback(async (centerId: string) => {
+    try {
+      setLoading(true);
+      setFormData({ ...formData, center: centerId, date: "", timeSlot: "" });
+      setShowManualCenterForm(false);
+      
+      const response = await dateSlotsApi.getByCenterId(centerId);
+      if (response.data) {
+        // Filter for future dates and available slots
+        const today = new Date();
+        const availableSlots = response.data.filter((slot: DateSlot) => 
+          new Date(slot.date) > today && 
+          slot.status === "active" && 
+          slot.availableSlots > 0
+        );
+        setAvailableDates(availableSlots);
+      }
+      setAvailableTimeSlots([]);
+    } catch (err) {
+      console.error("Error loading date slots:", err);
+      setError("Failed to load available dates. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [formData]);
+
+  // Load time slots when date is selected
+  const handleDateSelect = useCallback(async (dateSlotId: string) => {
+    try {
+      setLoading(true);
+      setFormData({ ...formData, date: dateSlotId, timeSlot: "" });
+      
+      const response = await timeSlotsApi.getByDateSlot(dateSlotId);
+      if (response.data) {
+        // Filter for available time slots
+        const availableSlots = response.data.filter((slot: TimeSlot) => slot.available);
+        setAvailableTimeSlots(availableSlots);
+      }
+    } catch (err) {
+      console.error("Error loading time slots:", err);
+      setError("Failed to load available time slots. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [formData]);
 
   // Handle manual center form submission
   const handleManualCenterSubmit = () => {
@@ -186,29 +169,52 @@ export default function ApplyVaccine() {
       formData.manualCenterAddress &&
       formData.manualCenterDivision
     ) {
-      // Mock: Set a dummy center ID for manual entry
+      // For manual centers, we'll skip the backend integration for now
+      // and move directly to a simplified booking flow
       setFormData({ ...formData, center: "manual-center" });
-      const dates = getAvailableDateSlots("manual-center");
-      setAvailableDates(dates);
-      setAvailableTimeSlots([]);
-      setStep(4); // Move to date selection
+      setStep(4);
     }
   };
 
-  // Update available time slots when date is selected
-  const handleDateSelect = (date: string) => {
-    setFormData({ ...formData, date, timeSlot: "" });
-    const slots = getTimeSlots(formData.center, date);
-    setAvailableTimeSlots(slots);
-  };
+  // Submit the appointment
+  const handleSubmit = useCallback(async () => {
+    if (!user?.id && !user?.uid) {
+      setError("User not found. Please log in again.");
+      return;
+    }
 
-  const handleSubmit = () => {
-    // Mock submission
-    router.push("/portal?applied=true");
-  };
+    if (formData.center === "manual-center") {
+      // For manual centers, show a message
+      alert("Manual center bookings will be processed manually. You will be contacted soon.");
+      router.push("/portal?applied=true");
+      return;
+    }
 
-  const selectedVaccine = availableVaccines.find((v) => v.id === formData.vaccine);
-  const selectedCenter = vaccinationCenters.find((c) => c.id === formData.center);
+    try {
+      setLoading(true);
+
+      const appointmentData: AppointmentFormData = {
+        vaccineId: formData.vaccine,
+        dose: parseInt(formData.doseNumber),
+        centerId: formData.center,
+        dateSlotId: formData.date,
+        timeSlotId: formData.timeSlot,
+      };
+
+      await appointmentsApi.create(appointmentData);
+      
+      // Redirect with success message
+      router.push("/portal?applied=true");
+    } catch (err) {
+      console.error("Error creating appointment:", err);
+      setError(err instanceof Error ? err.message : "Failed to create appointment. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user, formData, router]);
+
+  const selectedVaccine = vaccines.find((v) => v._id === formData.vaccine);
+  const selectedCenter = [...suggestedCenters, ...otherCenters].find((c) => c._id === formData.center);
   
   // Get display name for selected center
   const getSelectedCenterName = () => {
@@ -244,6 +250,29 @@ export default function ApplyVaccine() {
           <p className="text-gray-600">Select your preferences and book your vaccination</p>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-red-800">{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="mt-2 text-sm text-red-600 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="mb-6 flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-green-600 border-t-transparent"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        )}
+
         {/* Step 1: Select Vaccine */}
         {step === 1 && (
           <div>
@@ -251,44 +280,46 @@ export default function ApplyVaccine() {
               Choose Your Vaccine
             </h2>
             <div className="space-y-4">
-              {availableVaccines.map((vaccine) => (
-                <button
-                  key={vaccine.id}
-                  onClick={() => {
-                    setFormData({ ...formData, vaccine: vaccine.id });
-                    setStep(2);
-                  }}
-                  className={`w-full rounded-xl border-2 p-6 text-left transition-all ${
-                    formData.vaccine === vaccine.id
-                      ? "border-green-600 bg-green-50"
-                      : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="mb-2 flex items-center gap-3">
-                        <FaSyringe className="text-2xl text-green-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {vaccine.name}
-                        </h3>
+              {vaccines.length === 0 && !loading ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
+                  <p className="text-gray-600">No vaccines available at the moment.</p>
+                </div>
+              ) : (
+                vaccines.map((vaccine) => (
+                  <button
+                    key={vaccine._id}
+                    onClick={() => {
+                      setFormData({ ...formData, vaccine: vaccine._id });
+                      setStep(2);
+                    }}
+                    className={`w-full rounded-xl border-2 p-6 text-left transition-all ${
+                      formData.vaccine === vaccine._id
+                        ? "border-green-600 bg-green-50"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center gap-3">
+                          <FaSyringe className="text-2xl text-green-600" />
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {vaccine.name}
+                          </h3>
+                        </div>
+                        <p className="mb-2 text-sm text-gray-600">
+                          {vaccine.description || `Manufactured by ${vaccine.manufacturer}`}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Requires {vaccine.doses} doses
+                        </p>
                       </div>
-                      <p className="mb-2 text-sm text-gray-600">{vaccine.description}</p>
-                      <p className="text-xs text-gray-500">
-                        Requires {vaccine.doses} doses
-                      </p>
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                        Available
+                      </span>
                     </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        vaccine.availability === "Available"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {vaccine.availability}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -345,10 +376,10 @@ export default function ApplyVaccine() {
                 <div className="space-y-3">
                   {suggestedCenters.map((center) => (
                     <button
-                      key={center.id}
-                      onClick={() => handleCenterSelect(center.id)}
+                      key={center._id}
+                      onClick={() => handleCenterSelect(center._id)}
                       className={`w-full rounded-xl border-2 p-5 text-left transition-all ${
-                        formData.center === center.id
+                        formData.center === center._id
                           ? "border-green-600 bg-green-50"
                           : "border-green-200 bg-green-50/30 hover:border-green-400 hover:bg-green-50"
                       }`}
@@ -364,7 +395,7 @@ export default function ApplyVaccine() {
                           </div>
                           <p className="text-sm text-gray-600">{center.address}</p>
                           <p className="mt-1 text-xs text-gray-500">
-                            {center.upzila}, {center.zila}, {center.division}
+                            {center.upazila}, {center.district}, {center.division}
                           </p>
                         </div>
                       </div>
@@ -385,10 +416,10 @@ export default function ApplyVaccine() {
                 <div className="space-y-3">
                   {otherCenters.map((center) => (
                     <button
-                      key={center.id}
-                      onClick={() => handleCenterSelect(center.id)}
+                      key={center._id}
+                      onClick={() => handleCenterSelect(center._id)}
                       className={`w-full rounded-xl border-2 p-5 text-left transition-all ${
-                        formData.center === center.id
+                        formData.center === center._id
                           ? "border-green-600 bg-green-50"
                           : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                       }`}
@@ -399,7 +430,7 @@ export default function ApplyVaccine() {
                           <h3 className="mb-1 font-semibold text-gray-900">{center.name}</h3>
                           <p className="text-sm text-gray-600">{center.address}</p>
                           <p className="mt-1 text-xs text-gray-500">
-                            {center.upzila}, {center.zila}, {center.division}
+                            {center.upazila}, {center.district}, {center.division}
                           </p>
                         </div>
                       </div>
@@ -541,10 +572,10 @@ export default function ApplyVaccine() {
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   {availableDates.map((dateSlot) => (
                     <button
-                      key={dateSlot.id}
-                      onClick={() => handleDateSelect(dateSlot.date)}
+                      key={dateSlot._id}
+                      onClick={() => handleDateSelect(dateSlot._id)}
                       className={`rounded-lg border-2 p-3 text-center transition-all ${
-                        formData.date === dateSlot.date
+                        formData.date === dateSlot._id
                           ? "border-green-600 bg-green-50"
                           : "border-gray-200 bg-white hover:border-green-400 hover:bg-green-50"
                       }`}
@@ -561,7 +592,7 @@ export default function ApplyVaccine() {
                         })}
                       </div>
                       <div className="mt-1 text-xs font-medium text-green-600">
-                        {dateSlot.slotsLeft} slots
+                        {dateSlot.availableSlots} slots
                       </div>
                     </button>
                   ))}
@@ -602,12 +633,14 @@ export default function ApplyVaccine() {
                 <div className="flex items-center gap-2 text-sm text-green-900">
                   <FaClock className="text-green-600" />
                   <span className="font-medium">
-                    {new Date(formData.date).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {availableDates.find(d => d._id === formData.date) && 
+                      new Date(availableDates.find(d => d._id === formData.date)!.date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    }
                   </span>
                 </div>
               </div>
@@ -616,17 +649,17 @@ export default function ApplyVaccine() {
             <div className="mb-6 grid gap-4 md:grid-cols-2">
               {availableTimeSlots.map((slot) => (
                 <button
-                  key={slot.id}
+                  key={slot._id}
                   onClick={() => {
                     if (slot.available) {
-                      setFormData({ ...formData, timeSlot: slot.time });
+                      setFormData({ ...formData, timeSlot: slot._id });
                     }
                   }}
                   disabled={!slot.available}
                   className={`rounded-xl border-2 p-4 text-left transition-all ${
                     !slot.available
                       ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-50"
-                      : formData.timeSlot === slot.time
+                      : formData.timeSlot === slot._id
                         ? "border-green-600 bg-green-50"
                         : "border-gray-200 bg-white hover:border-green-600"
                   }`}
@@ -646,7 +679,7 @@ export default function ApplyVaccine() {
               ))}
             </div>
 
-            {availableTimeSlots.length === 0 && (
+            {availableTimeSlots.length === 0 && !loading && (
               <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
                 <p className="text-sm text-gray-600">
                   No time slots available. Please select a different date.
@@ -674,24 +707,29 @@ export default function ApplyVaccine() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Date:</span>
                     <span className="font-medium text-gray-900">
-                      {new Date(formData.date).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {availableDates.find(d => d._id === formData.date) &&
+                        new Date(availableDates.find(d => d._id === formData.date)!.date).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      }
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Time:</span>
-                    <span className="font-medium text-gray-900">{formData.timeSlot}</span>
+                    <span className="font-medium text-gray-900">
+                      {availableTimeSlots.find(t => t._id === formData.timeSlot)?.time}
+                    </span>
                   </div>
                 </div>
                 <button
                   onClick={handleSubmit}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+                  disabled={loading}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700 disabled:bg-green-400"
                 >
                   <FaCheckCircle />
-                  Confirm Application
+                  {loading ? "Submitting..." : "Confirm Application"}
                 </button>
               </div>
             )}
