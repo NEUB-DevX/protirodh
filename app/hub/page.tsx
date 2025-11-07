@@ -14,6 +14,9 @@ import {
   FaTrash,
   FaSignOutAlt,
   FaUserCircle,
+  FaEye,
+  FaEyeSlash,
+  FaCopy,
 } from "react-icons/fa";
 
 interface Vaccine {
@@ -33,6 +36,7 @@ interface Center {
   capacity: number;
   staff: number;
   status: string;
+  password: string;
 }
 
 export default function HubDashboard() {
@@ -43,6 +47,9 @@ export default function HubDashboard() {
   const [showCenterModal, setShowCenterModal] = useState(false);
   const [editingVaccine, setEditingVaccine] = useState<Vaccine | null>(null);
   const [editingCenter, setEditingCenter] = useState<Center | null>(null);
+  
+  // Password visibility state for each center
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
   
   // Form states
   const [vaccineForm, setVaccineForm] = useState({
@@ -59,7 +66,8 @@ export default function HubDashboard() {
     division: "",
     capacity: 0,
     staff: 0,
-    status: "active"
+    status: "active",
+    password: ""
   });
 
   // Mock data
@@ -70,9 +78,9 @@ export default function HubDashboard() {
   ];
 
   const centers = [
-    { id: 1, name: "Dhaka Medical College Center", address: "Bakshibazar, Dhaka-1000", division: "Dhaka", capacity: 500, staff: 12, status: "active" },
-    { id: 2, name: "Chittagong Medical Center", address: "K.B. Fazlul Kader Road", division: "Chittagong", capacity: 350, staff: 8, status: "active" },
-    { id: 3, name: "Mirpur Community Center", address: "Mirpur-10, Dhaka", division: "Dhaka", capacity: 200, staff: 6, status: "active" },
+    { id: 1, name: "Dhaka Medical College Center", address: "Bakshibazar, Dhaka-1000", division: "Dhaka", capacity: 500, staff: 12, status: "active", password: "DMC2024@secure" },
+    { id: 2, name: "Chittagong Medical Center", address: "K.B. Fazlul Kader Road", division: "Chittagong", capacity: 350, staff: 8, status: "active", password: "CMC2024@secure" },
+    { id: 3, name: "Mirpur Community Center", address: "Mirpur-10, Dhaka", division: "Dhaka", capacity: 200, staff: 6, status: "active", password: "MCC2024@secure" },
   ];
 
   const stockRequests = [
@@ -92,6 +100,33 @@ export default function HubDashboard() {
     totalStocks: 50000,
     wastage: 2.3,
     coverage: 68.5,
+  };
+
+  // Utility functions
+  const togglePasswordVisibility = (centerId: number) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [centerId]: !prev[centerId]
+    }));
+  };
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(`${type} copied to clipboard!`);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
   };
 
   // Modal handlers
@@ -126,7 +161,8 @@ export default function HubDashboard() {
         division: center.division,
         capacity: center.capacity,
         staff: center.staff,
-        status: center.status
+        status: center.status,
+        password: center.password
       });
     } else {
       setCenterForm({
@@ -135,7 +171,8 @@ export default function HubDashboard() {
         division: "",
         capacity: 0,
         staff: 0,
-        status: "active"
+        status: "active",
+        password: generatePassword()
       });
     }
     setShowCenterModal(true);
@@ -338,6 +375,53 @@ export default function HubDashboard() {
                       {center.status}
                     </span>
                   </div>
+
+                  {/* Center Credentials */}
+                  <div className="mb-4 rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-3 text-sm font-medium text-gray-700">Login Credentials</h4>
+                    
+                    {/* Center ID */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">Center ID:</span>
+                        <button
+                          onClick={() => copyToClipboard(center.id.toString(), 'Center ID')}
+                          className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                        >
+                          <FaCopy className="text-xs" />
+                          Copy
+                        </button>
+                      </div>
+                      <p className="font-mono font-semibold text-gray-900">#{center.id.toString().padStart(4, '0')}</p>
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">Password:</span>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => togglePasswordVisibility(center.id)}
+                            className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200"
+                          >
+                            {visiblePasswords[center.id] ? <FaEyeSlash className="text-xs" /> : <FaEye className="text-xs" />}
+                            {visiblePasswords[center.id] ? 'Hide' : 'Show'}
+                          </button>
+                          <button
+                            onClick={() => copyToClipboard(center.password, 'Password')}
+                            className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
+                          >
+                            <FaCopy className="text-xs" />
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                      <p className="font-mono font-semibold text-gray-900">
+                        {visiblePasswords[center.id] ? center.password : '••••••••••••'}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4">
                     <div>
                       <p className="text-xs text-gray-500">Daily Capacity</p>
@@ -778,6 +862,32 @@ export default function HubDashboard() {
                     <option value="inactive">Inactive</option>
                     <option value="maintenance">Under Maintenance</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Login Password
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={centerForm.password}
+                      onChange={(e) => setCenterForm({...centerForm, password: e.target.value})}
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      placeholder="Center login password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCenterForm({...centerForm, password: generatePassword()})}
+                      className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                    >
+                      Generate
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    This password will be used for center login authentication
+                  </p>
                 </div>
               </div>
 
