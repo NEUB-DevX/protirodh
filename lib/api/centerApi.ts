@@ -108,8 +108,8 @@ export const dashboardApi = {
 
 // Staff API
 export const staffApi = {
-  getAll: async (centerId: string) => {
-    return apiCall(`/center/staff/${centerId}`);
+  getAll: async () => {
+    return apiCall(`/center/staff/`);
   },
 
   create: async (staffData: {
@@ -153,8 +153,8 @@ export const staffApi = {
 
 // Date Slot API
 export const dateSlotApi = {
-  getAll: async (centerId: string) => {
-    return apiCall(`/center/date-slots/${centerId}`);
+  getAll: async () => {
+    return apiCall(`/center/date-slots/`);
   },
 
   create: async (dateSlotData: {
