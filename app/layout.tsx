@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { GlobalProvider } from "./context/GlobalContext";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Protirodh - Vaccination Management System",
-  description: "Digital vaccination management system for Bangladesh - Simplifying citizen registration, appointments, and vaccine tracking",
+  description:
+    "Digital vaccination management system for Bangladesh - Simplifying citizen registration, appointments, and vaccine tracking",
 };
 
 export default function RootLayout({
@@ -27,7 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <GlobalProvider>
+          <ToastContainer theme="dark" position="top-center" />
+          {children}
+        </GlobalProvider>
       </body>
     </html>
   );

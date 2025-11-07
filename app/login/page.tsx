@@ -1,18 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaSyringe, FaIdCard, FaKey, FaCheckCircle } from "react-icons/fa";
+import { useGlobal } from "../context/GlobalContext";
+import { toast } from "react-toastify";
 
 export default function Login() {
-  const router = useRouter();
   const [step, setStep] = useState<"id" | "otp">("id");
   const [idType, setIdType] = useState<"nid" | "birth">("nid");
   const [idNumber, setIdNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const { verify_otp } = useGlobal();
+
+  const router = useRouter();
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  useEffect(() => {
+    if (!token) {
+      router.push("/login");
+    }
+  }, [token, router]);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,35 +63,46 @@ export default function Login() {
   };
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
+    // e.preventDefault();
+    // setIsLoading(true);
+
+    // // TODO: Call API to verify OTP and get token
+    // const response = await fetch(
+    //   "https://regina-untalented-sigmoidally.ngrok-free.dev/api/v1/auth/verify-otp",
+    //   {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     // credentials: "include",
+    //     body: JSON.stringify({ nid: idNumber, code: otp }),
+    //   },
+    // );
+
+    // const data = await response.json();
+    // console.log(data.data)
+    // if (data.success) {
+    //   localStorage.setItem("authToken", data.data.token);
+    //   localStorage.setItem(
+    //     "user",
+    //     JSON.stringify({
+    //       idType,
+    //       idNumber,
+    //       email,
+    //     }),
+    //   );
+    //   router.push("/portal");
+    // } else {
+    //   alert("Invalid OTP. Please try again.");
+    //   setIsLoading(false);
+    // }
+
     e.preventDefault();
     setIsLoading(true);
 
-    // TODO: Call API to verify OTP and get token
-    const response = await fetch(
-      "https://regina-untalented-sigmoidally.ngrok-free.dev/api/v1/auth/verify-otp",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // credentials: "include",
-        body: JSON.stringify({ nid: idNumber, code: otp }),
-      },
-    );
-
-    const data = await response.json();
-    console.log(data.data)
-    if (data.success) {
-      localStorage.setItem("authToken", data.data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          idType,
-          idNumber,
-          email,
-        }),
-      );
-      router.push("/portal");
-    } else {
-      alert("Invalid OTP. Please try again.");
+    try {
+      await verify_otp(idNumber, otp);
+      toast.success("Login successful!");
+      location.href = "/portal";
+    } finally {
       setIsLoading(false);
     }
 

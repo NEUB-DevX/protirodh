@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 import {
   FaSyringe,
   FaUserCircle,
@@ -15,9 +15,11 @@ import {
   FaHourglassHalf,
   FaTimes,
 } from "react-icons/fa";
+import { useGlobal } from "../context/GlobalContext";
 
 export default function Portal() {
-  const router = useRouter();
+
+  const {logout} = useGlobal();
   const [userName] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("userName") || "User";
@@ -45,18 +47,11 @@ export default function Portal() {
     },
   ]);
 
-  useEffect(() => {
-    const auth = localStorage.getItem("user");
 
-    if (!auth) {
-      router.push("/");
-    }
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/");
-  };
+  // const handleLogout = () => {
+  //   localStorage.clear();
+  //   router.push("/");
+  // };
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -103,7 +98,7 @@ export default function Portal() {
                 <span className="font-medium text-gray-900">{userName}</span>
               </div>
               <button
-                onClick={handleLogout}
+                onClick={() => logout()}
                 className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 <FaSignOutAlt />

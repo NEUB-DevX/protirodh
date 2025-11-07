@@ -1,0 +1,1 @@
+export const API_URL="https://regina-untalented-sigmoidally.ngrok-free.dev/api/v1"
