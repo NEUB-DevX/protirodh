@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   FaCalendarCheck,
   FaSearch,
@@ -29,10 +30,10 @@ interface Appointment {
 }
 
 export default function StaffDashboard() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed" | "no-show">("all");
   const [sortBy, setSortBy] = useState<"time" | "name">("time");
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   // Mock data
   const staffInfo = {
@@ -149,16 +150,6 @@ export default function StaffDashboard() {
     completed: appointments.filter((a) => a.status === "completed").length,
     pending: appointments.filter((a) => a.status === "pending").length,
     noShow: appointments.filter((a) => a.status === "no-show").length,
-  };
-
-  const markAsCompleted = (id: number) => {
-    // In real app, this would update the backend
-    alert(`Appointment #${id} marked as completed!`);
-  };
-
-  const markAsNoShow = (id: number) => {
-    // In real app, this would update the backend
-    alert(`Appointment #${id} marked as no-show!`);
   };
 
   return (
@@ -299,7 +290,7 @@ export default function StaffDashboard() {
               {filteredAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  onClick={() => setSelectedAppointment(appointment)}
+                  onClick={() => router.push(`/staff/appointment/${appointment.id}`)}
                   className={`cursor-pointer rounded-xl border p-6 shadow-sm transition-all ${
                     appointment.status === "completed"
                       ? "border-green-200 bg-green-50 hover:border-green-300"
@@ -386,7 +377,7 @@ export default function StaffDashboard() {
                       </div>
                     </div>
 
-                    {/* Status Badge - No actions here, click to open detail page */}
+                    {/* Status Badge - Navigate to detail page */}
                     <div className="ml-4">
                       <div className="text-sm text-gray-500">Click to view details →</div>
                     </div>
@@ -397,203 +388,6 @@ export default function StaffDashboard() {
           )}
         </div>
       </div>
-
-      {/* Appointment Detail Modal/Page */}
-      {selectedAppointment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-            {/* Header */}
-            <div className="sticky top-0 border-b border-gray-200 bg-white px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Appointment Details</h3>
-                  <p className="mt-1 text-sm text-gray-600">ID: #{selectedAppointment.id}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedAppointment(null)}
-                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                >
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-              {/* Status Banner */}
-              <div
-                className={`mb-6 rounded-xl p-4 ${
-                  selectedAppointment.status === "completed"
-                    ? "bg-green-100"
-                    : selectedAppointment.status === "no-show"
-                      ? "bg-red-100"
-                      : "bg-yellow-100"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-lg font-bold ${
-                      selectedAppointment.status === "completed"
-                        ? "text-green-900"
-                        : selectedAppointment.status === "no-show"
-                          ? "text-red-900"
-                          : "text-yellow-900"
-                    }`}
-                  >
-                    Status: {selectedAppointment.status === "pending" ? "Pending Vaccination" : selectedAppointment.status === "completed" ? "Completed" : "No Show"}
-                  </span>
-                  <span
-                    className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                      selectedAppointment.status === "completed"
-                        ? "bg-green-600 text-white"
-                        : selectedAppointment.status === "no-show"
-                          ? "bg-red-600 text-white"
-                          : "bg-yellow-500 text-white"
-                    }`}
-                  >
-                    {selectedAppointment.status.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Patient Information */}
-              <div className="mb-6">
-                <h4 className="mb-4 text-lg font-bold text-gray-900">Patient Information</h4>
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-                  <div className="mb-4 flex items-center gap-4">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-200">
-                      <FaUser className="text-3xl text-gray-700" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900">{selectedAppointment.patientName}</h3>
-                      <p className="text-sm text-gray-600">Patient</p>
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-lg bg-white p-4">
-                      <p className="mb-1 flex items-center gap-2 text-xs font-medium text-gray-500">
-                        <FaIdCard />
-                        National ID
-                      </p>
-                      <p className="font-semibold text-gray-900">{selectedAppointment.nid}</p>
-                    </div>
-                    <div className="rounded-lg bg-white p-4">
-                      <p className="mb-1 flex items-center gap-2 text-xs font-medium text-gray-500">
-                        <FaPhone />
-                        Contact Number
-                      </p>
-                      <p className="font-semibold text-gray-900">{selectedAppointment.contact}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vaccination Details */}
-              <div className="mb-6">
-                <h4 className="mb-4 text-lg font-bold text-gray-900">Vaccination Details</h4>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-                    <p className="mb-2 flex items-center gap-2 text-sm font-medium text-blue-700">
-                      <FaSyringe />
-                      Vaccine
-                    </p>
-                    <p className="text-xl font-bold text-blue-900">{selectedAppointment.vaccine}</p>
-                  </div>
-                  <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
-                    <p className="mb-2 text-sm font-medium text-purple-700">Dose Number</p>
-                    <p className="text-xl font-bold text-purple-900">Dose {selectedAppointment.dose}</p>
-                  </div>
-                  <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-                    <p className="mb-2 flex items-center gap-2 text-sm font-medium text-green-700">
-                      <FaCalendarCheck />
-                      Date
-                    </p>
-                    <p className="text-xl font-bold text-green-900">{selectedAppointment.date}</p>
-                  </div>
-                  <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
-                    <p className="mb-2 flex items-center gap-2 text-sm font-medium text-orange-700">
-                      <FaClock />
-                      Time
-                    </p>
-                    <p className="text-xl font-bold text-orange-900">{selectedAppointment.time}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              <div className="mb-6">
-                <h4 className="mb-4 text-lg font-bold text-gray-900">Additional Information</h4>
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Center:</span>
-                      <span className="font-semibold text-gray-900">{staffInfo.center}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Assigned Staff:</span>
-                      <span className="font-semibold text-gray-900">{staffInfo.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Appointment ID:</span>
-                      <span className="font-mono font-semibold text-gray-900">#{selectedAppointment.id.toString().padStart(6, '0')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              {selectedAppointment.status === "pending" && (
-                <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      markAsCompleted(selectedAppointment.id);
-                      setSelectedAppointment(null);
-                    }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-4 text-lg font-semibold text-white transition-colors hover:bg-green-700"
-                  >
-                    <FaCheckCircle className="text-xl" />
-                    Mark Vaccination as Completed
-                  </button>
-                  <button
-                    onClick={() => {
-                      markAsNoShow(selectedAppointment.id);
-                      setSelectedAppointment(null);
-                    }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-300 bg-white px-6 py-4 text-lg font-semibold text-red-700 transition-colors hover:bg-red-50"
-                  >
-                    Mark as No-Show
-                  </button>
-                </div>
-              )}
-
-              {selectedAppointment.status === "completed" && (
-                <div className="rounded-xl bg-green-100 p-4 text-center">
-                  <FaCheckCircle className="mx-auto mb-2 text-4xl text-green-600" />
-                  <p className="font-semibold text-green-900">This vaccination has been completed</p>
-                </div>
-              )}
-
-              {selectedAppointment.status === "no-show" && (
-                <div className="rounded-xl bg-red-100 p-4 text-center">
-                  <p className="font-semibold text-red-900">Patient did not show up for this appointment</p>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="sticky bottom-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
-              <button
-                onClick={() => setSelectedAppointment(null)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
