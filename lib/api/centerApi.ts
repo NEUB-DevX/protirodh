@@ -1,12 +1,11 @@
 import { API_URL } from "@/app/const/config";
 
-
 // Helper function for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('token');
-  
+  const token = localStorage.getItem("token");
+
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
@@ -19,7 +18,7 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'API request failed');
+    throw new Error(data.message || "API request failed");
   }
 
   return data;
@@ -28,21 +27,21 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 // Authentication API
 export const centerAuthApi = {
   login: async (centerId: string, password: string) => {
-    return apiCall('/auth/center/login', {
-      method: 'POST',
+    return apiCall("/auth/center/login", {
+      method: "POST",
       body: JSON.stringify({ centerId, password }),
     });
   },
 
   verifyToken: async () => {
-    return apiCall('/auth/center/verify-token', {
-      method: 'POST',
+    return apiCall("/auth/center/verify-token", {
+      method: "POST",
     });
   },
 
   logout: async () => {
-    return apiCall('/auth/center/logout', {
-      method: 'POST',
+    return apiCall("/auth/center/logout", {
+      method: "POST",
     });
   },
 };
@@ -50,7 +49,7 @@ export const centerAuthApi = {
 // Stock Request API
 export const stockRequestApi = {
   getAll: async () => {
-    return apiCall('/center/stock-requests');
+    return apiCall("/center/stock-requests");
   },
 
   getById: async (id: string) => {
@@ -63,8 +62,8 @@ export const stockRequestApi = {
     urgency: string;
     notes?: string;
   }) => {
-    return apiCall('/center/stock-requests', {
-      method: 'POST',
+    return apiCall("/center/stock-requests", {
+      method: "POST",
       body: JSON.stringify(requestData),
     });
   },
@@ -73,7 +72,7 @@ export const stockRequestApi = {
 // Vaccine API
 export const vaccineApi = {
   getAll: async () => {
-    return apiCall('/center/vaccines');
+    return apiCall("/center/vaccines");
   },
 
   getById: async (id: string) => {
@@ -84,7 +83,7 @@ export const vaccineApi = {
 // Profile API
 export const profileApi = {
   get: async () => {
-    return apiCall('/center/profile');
+    return apiCall("/center/profile");
   },
 
   update: async (profileData: {
@@ -93,8 +92,8 @@ export const profileApi = {
     capacity?: number;
     staff?: number;
   }) => {
-    return apiCall('/center/profile', {
-      method: 'PUT',
+    return apiCall("/center/profile", {
+      method: "PUT",
       body: JSON.stringify(profileData),
     });
   },
@@ -103,14 +102,14 @@ export const profileApi = {
 // Dashboard API
 export const dashboardApi = {
   get: async () => {
-    return apiCall('/center/dashboard');
+    return apiCall("/center/dashboard");
   },
 };
 
 // Staff API
 export const staffApi = {
-  getAll: async () => {
-    return apiCall('/center/staff');
+  getAll: async (centerId: string) => {
+    return apiCall(`/center/staff/${centerId}`);
   },
 
   create: async (staffData: {
@@ -121,38 +120,41 @@ export const staffApi = {
     role: string;
     password: string;
   }) => {
-    return apiCall('/center/staff', {
-      method: 'POST',
+    return apiCall("/center/staff", {
+      method: "POST",
       body: JSON.stringify(staffData),
     });
   },
 
-  update: async (id: string, staffData: Partial<{
-    staffId: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: string;
-    password: string;
-    status: string;
-  }>) => {
+  update: async (
+    id: string,
+    staffData: Partial<{
+      staffId: string;
+      name: string;
+      email: string;
+      phone: string;
+      role: string;
+      password: string;
+      status: string;
+    }>,
+  ) => {
     return apiCall(`/center/staff/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(staffData),
     });
   },
 
   delete: async (id: string) => {
     return apiCall(`/center/staff/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 };
 
 // Date Slot API
 export const dateSlotApi = {
-  getAll: async () => {
-    return apiCall('/center/date-slots');
+  getAll: async (centerId: string) => {
+    return apiCall(`/center/date-slots/${centerId}`);
   },
 
   create: async (dateSlotData: {
@@ -160,26 +162,29 @@ export const dateSlotApi = {
     capacity: number;
     status: string;
   }) => {
-    return apiCall('/center/date-slots', {
-      method: 'POST',
+    return apiCall("/center/date-slots", {
+      method: "POST",
       body: JSON.stringify(dateSlotData),
     });
   },
 
-  update: async (id: string, dateSlotData: Partial<{
-    date: string;
-    capacity: number;
-    status: string;
-  }>) => {
+  update: async (
+    id: string,
+    dateSlotData: Partial<{
+      date: string;
+      capacity: number;
+      status: string;
+    }>,
+  ) => {
     return apiCall(`/center/date-slots/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(dateSlotData),
     });
   },
 
   delete: async (id: string) => {
     return apiCall(`/center/date-slots/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 };
@@ -196,26 +201,29 @@ export const timeSlotApi = {
     capacity: number;
     assignedStaffId?: string;
   }) => {
-    return apiCall('/center/time-slots', {
-      method: 'POST',
+    return apiCall("/center/time-slots", {
+      method: "POST",
       body: JSON.stringify(timeSlotData),
     });
   },
 
-  update: async (id: string, timeSlotData: Partial<{
-    time: string;
-    capacity: number;
-    assignedStaffId?: string | null;
-  }>) => {
+  update: async (
+    id: string,
+    timeSlotData: Partial<{
+      time: string;
+      capacity: number;
+      assignedStaffId?: string | null;
+    }>,
+  ) => {
     return apiCall(`/center/time-slots/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(timeSlotData),
     });
   },
 
   delete: async (id: string) => {
     return apiCall(`/center/time-slots/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   },
 };

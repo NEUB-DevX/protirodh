@@ -13,7 +13,11 @@ import { toast } from "react-toastify";
 import { API_URL } from "../const/config";
 
 type User = {
-  uid: string;
+  id?: string;
+  uid?: string;
+  centerId?: string;
+  staffId?: string;
+  hubId?: string;
   nid?: string;
   b_group?: string;
   gender?: string;
@@ -33,6 +37,7 @@ type User = {
 interface GlobalContextType {
   user: User | null;
   isAuthenticated: boolean;
+  admin_login: (loginId: string, password: string, role: "hub" | "center" | "staff") => Promise<void>;
   verify_otp: (idNumber: string, otp: string, type: "nid" | "bid") => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -54,7 +59,55 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Login function
+  // Admin login function
+  const admin_login = async (loginId: string, password: string, role: "hub" | "center" | "staff") => {
+    setLoading(true);
+    try {
+      const endpoint = `${API_URL}/auth/${role}/login`;
+      const body = role === "hub" 
+        ? { username: loginId, password }
+        : role === "center"
+        ? { centerId: loginId, password }
+        : { staffId: loginId, password };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        const errorMsg = data.message || "Login failed. Please check your credentials.";
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      if (!data.data.token) {
+        toast.error("Login failed - no token received");
+        throw new Error("Login failed - no token received");
+      }
+
+      // Store token
+      localStorage.setItem("token", data.data.token);
+
+      // Set user data
+      setUser(data.data.user || data.data.center || data.data.staff || { name: role });
+
+      // Redirect based on role
+      const redirectPath = role === "hub" ? "/hub" : role === "center" ? "/center" : "/staff";
+      router.push(redirectPath);
+      
+      toast.success(`Welcome ${role === "hub" ? "Admin" : role === "center" ? "Center" : "Staff"}!`);
+    } catch (error) {
+      console.error("Admin login error:", error);
+      return Promise.reject(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const verify_otp = async (idNumber: string, otp: string, type: "nid" | "bid") => {
     setLoading(true);
     try {
@@ -132,7 +185,6 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         const data = await res.json();
-
         setUser(data.data.user);
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -149,6 +201,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         user,
         isAuthenticated: !!user,
+        admin_login,
         verify_otp,
         logout,
         loading,
