@@ -16,6 +16,7 @@ import {
   FaPhone,
   FaSort,
 } from "react-icons/fa";
+import { useGlobal } from "@/app/context/GlobalContext";
 
 interface Appointment {
   id: number;
@@ -35,9 +36,11 @@ export default function StaffDashboard() {
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed" | "no-show">("all");
   const [sortBy, setSortBy] = useState<"time" | "name">("time");
 
+  const {logout, user} = useGlobal();
+
   // Mock data
   const staffInfo = {
-    name: "Dr. Kamal Ahmed",
+    name: user?.name || "Staff Member",
     role: "Vaccinator",
     center: "Dhaka Medical College Center",
     shift: "09:00 AM - 04:00 PM",
@@ -175,7 +178,7 @@ export default function StaffDashboard() {
                 </p>
               </div>
               <FaUserCircle className="text-3xl text-gray-600" />
-              <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+              <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50" onClick={()=>logout()}>
                 <FaSignOutAlt />
                 Logout
               </button>
