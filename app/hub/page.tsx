@@ -16,8 +16,51 @@ import {
   FaUserCircle,
 } from "react-icons/fa";
 
+interface Vaccine {
+  id: number;
+  name: string;
+  manufacturer: string;
+  doses: number;
+  temperature: string;
+  efficacy: string;
+}
+
+interface Center {
+  id: number;
+  name: string;
+  address: string;
+  division: string;
+  capacity: number;
+  staff: number;
+  status: string;
+}
+
 export default function HubDashboard() {
   const [activeTab, setActiveTab] = useState<"vaccines" | "centers" | "stocks" | "movement" | "analytics">("vaccines");
+  
+  // Modal states
+  const [showVaccineModal, setShowVaccineModal] = useState(false);
+  const [showCenterModal, setShowCenterModal] = useState(false);
+  const [editingVaccine, setEditingVaccine] = useState<Vaccine | null>(null);
+  const [editingCenter, setEditingCenter] = useState<Center | null>(null);
+  
+  // Form states
+  const [vaccineForm, setVaccineForm] = useState({
+    name: "",
+    manufacturer: "",
+    doses: 2,
+    temperature: "",
+    efficacy: ""
+  });
+  
+  const [centerForm, setCenterForm] = useState({
+    name: "",
+    address: "",
+    division: "",
+    capacity: 0,
+    staff: 0,
+    status: "active"
+  });
 
   // Mock data
   const vaccines = [
@@ -49,6 +92,77 @@ export default function HubDashboard() {
     totalStocks: 50000,
     wastage: 2.3,
     coverage: 68.5,
+  };
+
+  // Modal handlers
+  const openVaccineModal = (vaccine?: Vaccine) => {
+    setEditingVaccine(vaccine || null);
+    if (vaccine) {
+      setVaccineForm({
+        name: vaccine.name,
+        manufacturer: vaccine.manufacturer,
+        doses: vaccine.doses,
+        temperature: vaccine.temperature,
+        efficacy: vaccine.efficacy
+      });
+    } else {
+      setVaccineForm({
+        name: "",
+        manufacturer: "",
+        doses: 2,
+        temperature: "",
+        efficacy: ""
+      });
+    }
+    setShowVaccineModal(true);
+  };
+
+  const openCenterModal = (center?: Center) => {
+    setEditingCenter(center || null);
+    if (center) {
+      setCenterForm({
+        name: center.name,
+        address: center.address,
+        division: center.division,
+        capacity: center.capacity,
+        staff: center.staff,
+        status: center.status
+      });
+    } else {
+      setCenterForm({
+        name: "",
+        address: "",
+        division: "",
+        capacity: 0,
+        staff: 0,
+        status: "active"
+      });
+    }
+    setShowCenterModal(true);
+  };
+
+  const closeVaccineModal = () => {
+    setShowVaccineModal(false);
+    setEditingVaccine(null);
+  };
+
+  const closeCenterModal = () => {
+    setShowCenterModal(false);
+    setEditingCenter(null);
+  };
+
+  const handleVaccineSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In real app, this would call API
+    console.log(editingVaccine ? "Updating vaccine:" : "Adding vaccine:", vaccineForm);
+    closeVaccineModal();
+  };
+
+  const handleCenterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In real app, this would call API
+    console.log(editingCenter ? "Updating center:" : "Adding center:", centerForm);
+    closeCenterModal();
   };
 
   return (
@@ -150,7 +264,10 @@ export default function HubDashboard() {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Vaccine Management</h2>
-              <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700">
+              <button 
+                onClick={() => openVaccineModal()}
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
+              >
                 <FaPlus />
                 Add Vaccine
               </button>
@@ -178,7 +295,10 @@ export default function HubDashboard() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50">
+                      <button 
+                        onClick={() => openVaccineModal(vaccine)}
+                        className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50"
+                      >
                         <FaEdit />
                       </button>
                       <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
@@ -197,7 +317,10 @@ export default function HubDashboard() {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Vaccination Centers</h2>
-              <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700">
+              <button 
+                onClick={() => openCenterModal()}
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700"
+              >
                 <FaPlus />
                 Add Center
               </button>
@@ -226,7 +349,10 @@ export default function HubDashboard() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <button 
+                      onClick={() => openCenterModal(center)}
+                      className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
                       <FaEdit className="inline mr-2" />
                       Edit
                     </button>
@@ -422,6 +548,258 @@ export default function HubDashboard() {
           </div>
         )}
       </div>
+
+      {/* Vaccine Modal */}
+      {showVaccineModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingVaccine ? "Edit Vaccine" : "Add New Vaccine"}
+                </h3>
+                <button
+                  onClick={closeVaccineModal}
+                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleVaccineSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vaccine Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={vaccineForm.name}
+                    onChange={(e) => setVaccineForm({...vaccineForm, name: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., Pfizer-BioNTech"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Manufacturer
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={vaccineForm.manufacturer}
+                    onChange={(e) => setVaccineForm({...vaccineForm, manufacturer: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., Pfizer Inc."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Doses
+                  </label>
+                  <select
+                    value={vaccineForm.doses}
+                    onChange={(e) => setVaccineForm({...vaccineForm, doses: parseInt(e.target.value)})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value={1}>1 dose</option>
+                    <option value={2}>2 doses</option>
+                    <option value={3}>3 doses</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Storage Temperature
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={vaccineForm.temperature}
+                    onChange={(e) => setVaccineForm({...vaccineForm, temperature: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., -70°C"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Efficacy Rate
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={vaccineForm.efficacy}
+                    onChange={(e) => setVaccineForm({...vaccineForm, efficacy: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., 95%"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeVaccineModal}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+                >
+                  {editingVaccine ? "Update" : "Add"} Vaccine
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Center Modal */}
+      {showCenterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingCenter ? "Edit Center" : "Add New Center"}
+                </h3>
+                <button
+                  onClick={closeCenterModal}
+                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleCenterSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Center Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={centerForm.name}
+                    onChange={(e) => setCenterForm({...centerForm, name: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., Dhaka Medical College Center"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={centerForm.address}
+                    onChange={(e) => setCenterForm({...centerForm, address: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., Bakshibazar, Dhaka-1000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Division
+                  </label>
+                  <select
+                    value={centerForm.division}
+                    onChange={(e) => setCenterForm({...centerForm, division: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    required
+                  >
+                    <option value="">Select Division</option>
+                    <option value="Dhaka">Dhaka</option>
+                    <option value="Chittagong">Chittagong</option>
+                    <option value="Rajshahi">Rajshahi</option>
+                    <option value="Khulna">Khulna</option>
+                    <option value="Barisal">Barisal</option>
+                    <option value="Sylhet">Sylhet</option>
+                    <option value="Rangpur">Rangpur</option>
+                    <option value="Mymensingh">Mymensingh</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Daily Capacity
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={centerForm.capacity}
+                    onChange={(e) => setCenterForm({...centerForm, capacity: parseInt(e.target.value)})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., 500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Staff Count
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={centerForm.staff}
+                    onChange={(e) => setCenterForm({...centerForm, staff: parseInt(e.target.value)})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g., 12"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={centerForm.status}
+                    onChange={(e) => setCenterForm({...centerForm, status: e.target.value})}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="maintenance">Under Maintenance</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeCenterModal}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+                >
+                  {editingCenter ? "Update" : "Add"} Center
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
