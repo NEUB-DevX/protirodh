@@ -122,6 +122,7 @@ const getTimeSlots = (_centerId: string, date: string) => {
 export default function ApplyVaccine() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [showManualCenterForm, setShowManualCenterForm] = useState(false);
   const [availableDates, setAvailableDates] = useState<
     Array<{
       id: string;
@@ -143,6 +144,12 @@ export default function ApplyVaccine() {
     center: "",
     date: "",
     timeSlot: "",
+    // Manual center fields
+    manualCenterName: "",
+    manualCenterAddress: "",
+    manualCenterDivision: "",
+    manualCenterZila: "",
+    manualCenterUpzila: "",
   });
 
   // Mock user data - get from localStorage in real app
@@ -166,9 +173,26 @@ export default function ApplyVaccine() {
   // Update available dates when center is selected
   const handleCenterSelect = (centerId: string) => {
     setFormData({ ...formData, center: centerId, date: "", timeSlot: "" });
+    setShowManualCenterForm(false);
     const dates = getAvailableDateSlots(centerId);
     setAvailableDates(dates);
     setAvailableTimeSlots([]);
+  };
+
+  // Handle manual center form submission
+  const handleManualCenterSubmit = () => {
+    if (
+      formData.manualCenterName &&
+      formData.manualCenterAddress &&
+      formData.manualCenterDivision
+    ) {
+      // Mock: Set a dummy center ID for manual entry
+      setFormData({ ...formData, center: "manual-center" });
+      const dates = getAvailableDateSlots("manual-center");
+      setAvailableDates(dates);
+      setAvailableTimeSlots([]);
+      setStep(4); // Move to date selection
+    }
   };
 
   // Update available time slots when date is selected
@@ -185,6 +209,13 @@ export default function ApplyVaccine() {
 
   const selectedVaccine = availableVaccines.find((v) => v.id === formData.vaccine);
   const selectedCenter = vaccinationCenters.find((c) => c.id === formData.center);
+  
+  // Get display name for selected center
+  const getSelectedCenterName = () => {
+    if (selectedCenter) return selectedCenter.name;
+    if (formData.center === "manual-center") return formData.manualCenterName;
+    return "";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -295,7 +326,7 @@ export default function ApplyVaccine() {
           </div>
         )}
 
-        {/* Step 3: Select Center & Date */}
+        {/* Step 3: Select Center */}
         {step === 3 && (
           <div>
             <h2 className="mb-6 text-xl font-semibold text-gray-900">
@@ -303,7 +334,7 @@ export default function ApplyVaccine() {
             </h2>
 
             {/* Suggested Centers */}
-            {suggestedCenters.length > 0 && (
+            {suggestedCenters.length > 0 && !showManualCenterForm && (
               <div className="mb-6">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-green-700">
@@ -344,11 +375,13 @@ export default function ApplyVaccine() {
             )}
 
             {/* Other Centers */}
-            {otherCenters.length > 0 && (
+            {otherCenters.length > 0 && !showManualCenterForm && (
               <div className="mb-6">
-                <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                  Other Centers
-                </h3>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    Other Centers
+                  </h3>
+                </div>
                 <div className="space-y-3">
                   {otherCenters.map((center) => (
                     <button
@@ -376,8 +409,131 @@ export default function ApplyVaccine() {
               </div>
             )}
 
-            {/* Available Dates */}
-            {formData.center && availableDates.length > 0 && (
+            {/* Manual Center Input Form */}
+            {showManualCenterForm ? (
+              <div className="mb-6">
+                <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>Custom Center:</strong> Enter the details of your vaccination center below.
+                  </p>
+                </div>
+                <div className="space-y-4 rounded-xl border-2 border-gray-200 bg-white p-6">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Center Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.manualCenterName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, manualCenterName: e.target.value })
+                      }
+                      placeholder="Enter center name"
+                      className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.manualCenterAddress}
+                      onChange={(e) =>
+                        setFormData({ ...formData, manualCenterAddress: e.target.value })
+                      }
+                      placeholder="Enter full address"
+                      className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Division <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.manualCenterDivision}
+                        onChange={(e) =>
+                          setFormData({ ...formData, manualCenterDivision: e.target.value })
+                        }
+                        placeholder="e.g., Dhaka"
+                        className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Zila
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.manualCenterZila}
+                        onChange={(e) =>
+                          setFormData({ ...formData, manualCenterZila: e.target.value })
+                        }
+                        placeholder="e.g., Dhaka"
+                        className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Upazila
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.manualCenterUpzila}
+                        onChange={(e) =>
+                          setFormData({ ...formData, manualCenterUpzila: e.target.value })
+                        }
+                        placeholder="e.g., Mirpur"
+                        className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => setShowManualCenterForm(false)}
+                      className="flex-1 rounded-lg border-2 border-gray-300 bg-white px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleManualCenterSubmit}
+                      disabled={
+                        !formData.manualCenterName ||
+                        !formData.manualCenterAddress ||
+                        !formData.manualCenterDivision
+                      }
+                      className="flex-1 rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-green-300"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Toggle to Manual Center Input */
+              <div className="mb-6">
+                <button
+                  onClick={() => setShowManualCenterForm(true)}
+                  className="w-full rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-5 text-center transition-all hover:border-green-400 hover:bg-green-50"
+                >
+                  <div className="flex items-center justify-center gap-2 text-gray-700">
+                    <FaMapMarkerAlt className="text-gray-400" />
+                    <span className="font-medium">Enter Custom Center Details</span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Can&apos;t find your center? Add it manually
+                  </p>
+                </button>
+              </div>
+            )}
+
+            {/* Available Dates - Shows after center selection */}
+            {formData.center && availableDates.length > 0 && !showManualCenterForm && (
               <div className="mb-6">
                 <label className="mb-3 block text-sm font-semibold text-gray-900">
                   Select Available Date <span className="text-red-500">*</span>
@@ -414,7 +570,7 @@ export default function ApplyVaccine() {
             )}
 
             {/* Continue Button */}
-            {formData.center && formData.date && (
+            {formData.center && formData.date && !showManualCenterForm && (
               <button
                 onClick={() => setStep(4)}
                 className="w-full rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
@@ -499,7 +655,7 @@ export default function ApplyVaccine() {
             )}
 
             {/* Summary */}
-            {formData.timeSlot && selectedVaccine && selectedCenter && (
+            {formData.timeSlot && selectedVaccine && (
               <div className="rounded-xl border border-green-200 bg-green-50 p-6">
                 <h3 className="mb-4 font-semibold text-gray-900">Application Summary</h3>
                 <div className="space-y-2 text-sm">
@@ -513,7 +669,7 @@ export default function ApplyVaccine() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Center:</span>
-                    <span className="font-medium text-gray-900">{selectedCenter.name}</span>
+                    <span className="font-medium text-gray-900">{getSelectedCenterName()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Date:</span>
