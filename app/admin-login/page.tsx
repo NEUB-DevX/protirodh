@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaUser, FaLock, FaUserShield, FaHospital, FaUserMd } from "react-icons/fa";
 import { API_URL } from "../const/config";
+import { useGlobal } from "../context/GlobalContext";
 
 type Role = "hub" | "center" | "staff";
 
@@ -15,38 +16,43 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  const { admin_login } = useGlobal();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      const endpoint = `${API_URL}/auth/${role}/login`;
-      const body = role === "hub" 
-        ? { username: loginId, password }
-        : role === "center"
-        ? { centerId: loginId, password }
-        : { staffId: loginId, password };
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      await admin_login(loginId, password, role);
 
-      const data = await response.json();
+     //  const endpoint = `${API_URL}/auth/${role}/login`;
+     //  const body = role === "hub" 
+     //    ? { username: loginId, password }
+     //    : role === "center"
+     //    ? { centerId: loginId, password }
+     //    : { staffId: loginId, password };
 
-      if (data.success) {
-        // Store token based on role
-     //    const tokenKey = role === "hub" ? "adminToken" : role === "center" ? "centerToken" : "staffToken";
-        localStorage.setItem("token", data.data.token);
-        console.log(data.data.token)
-        // Redirect based on role
-        const redirectPath = role === "hub" ? "/hub" : role === "center" ? "/center" : "/staff";
-        router.push(redirectPath);
-      } else {
-        setError(data.message || "Login failed. Please check your credentials.");
-      }
+     //  const response = await fetch(endpoint, {
+     //    method: "POST",
+     //    headers: { "Content-Type": "application/json" },
+     //    body: JSON.stringify(body),
+     //  });
+
+     //  const data = await response.json();
+
+     //  if (data.success) {
+     //    // Store token based on role
+     // //    const tokenKey = role === "hub" ? "adminToken" : role === "center" ? "centerToken" : "staffToken";
+     //    localStorage.setItem("token", data.data.token);
+     //    console.log(data.data.token)
+     //    // Redirect based on role
+     //    const redirectPath = role === "hub" ? "/hub" : role === "center" ? "/center" : "/staff";
+     //    router.push(redirectPath);
+     //  } else {
+     //    setError(data.message || "Login failed. Please check your credentials.");
+     //  }
     } catch (err) {
       setError("An error occurred. Please try again.");
       console.error("Login error:", err);
