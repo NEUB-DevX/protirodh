@@ -5,7 +5,9 @@ if (!process.env.MONGO_URI) {
 }
 
 const uri = process.env.MONGO_URI;
-const dbName = process.env.DB_NAME || 'protirodh';
+const dbName = process.env.DB_NAME;
+
+console.log(uri, dbName);
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;

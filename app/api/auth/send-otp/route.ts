@@ -1,6 +1,7 @@
+import { sendMail } from "@/lib/mail";
+import { connectDB } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "../../../../lib/mongodb";
-import { sendMail } from "../../../../lib/mail";
+
 
 // User interface for database operations
 interface User {

@@ -34,7 +34,7 @@ export default function Login() {
     // TODO: Call API to send OTP
     console.log(idNumber);
     const response = await fetch(
-      "https://regina-untalented-sigmoidally.ngrok-free.dev/api/v1/auth/send-otp",
+      "api/auth/send-otp",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
