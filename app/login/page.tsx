@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 
 export default function Login() {
   const [step, setStep] = useState<"id" | "otp">("id");
-  const [idType, setIdType] = useState<"nid" | "birth">("nid");
+  const [idType, setIdType] = useState<"nid" | "bid">("nid");
   const [idNumber, setIdNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export default function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // credentials: "include",
-        body: JSON.stringify({ nid: idNumber }),
+        body: JSON.stringify({ id: idNumber, type: idType }),
       },
     );
 
@@ -99,7 +99,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await verify_otp(idNumber, otp);
+      await verify_otp(idNumber, otp, idType);
       toast.success("Login successful!");
       location.href = "/portal";
     } finally {
@@ -177,9 +177,9 @@ export default function Login() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setIdType("birth")}
+                      onClick={() => setIdType("bid")}
                       className={`rounded-lg border-2 py-3 font-medium transition-all ${
-                        idType === "birth"
+                        idType === "bid"
                           ? "border-green-600 bg-green-50 text-green-600"
                           : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
                       }`}

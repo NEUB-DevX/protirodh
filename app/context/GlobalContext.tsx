@@ -33,7 +33,7 @@ type User = {
 interface GlobalContextType {
   user: User | null;
   isAuthenticated: boolean;
-  verify_otp: (idNumber: string, otp: string) => Promise<void>;
+  verify_otp: (idNumber: string, otp: string, type: "nid" | "bid") => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
   setLoading: Dispatch<SetStateAction<boolean>>;
@@ -55,13 +55,13 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   // Login function
-  const verify_otp = async (idNumber: string, otp: string) => {
+  const verify_otp = async (idNumber: string, otp: string, type: "nid" | "bid") => {
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nid: idNumber, code: otp }),
+        body: JSON.stringify({ id: idNumber, code: otp, type }),
       });
 
       if (!res.ok) {
