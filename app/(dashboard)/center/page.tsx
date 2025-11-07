@@ -111,6 +111,7 @@ export default function CenterDashboard() {
   const [dateSlotsList, setDateSlotsList] = useState<DateSlotType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [centerId, setCenterId] = useState<string>("");
 
   // Password visibility state for each staff member
   const [visiblePasswords, setVisiblePasswords] = useState<
@@ -140,7 +141,10 @@ export default function CenterDashboard() {
 
       if (vaccinesRes.data) setVaccines(vaccinesRes.data);
       if (stockRes.data) setStockRequests(stockRes.data);
-      if (profileRes.data) setCenterProfile(profileRes.data);
+      if (profileRes.data) {
+        setCenterProfile(profileRes.data);
+        setCenterId(profileRes.data.id || profileRes.data._id || '');
+      }
       if (dashboardRes.data) setDashboard(dashboardRes.data);
       if (staffRes.data) setStaffList(staffRes.data);
       if (dateSlotsRes.data) setDateSlotsList(dateSlotsRes.data);
@@ -313,11 +317,21 @@ export default function CenterDashboard() {
   const handleDateSlotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!centerId) {
+        alert('Center ID not found. Please refresh the page.');
+        return;
+      }
+
+      const dateSlotData = {
+        ...dateSlotForm,
+        centerId,
+      };
+
       if (editingDateSlot) {
-        await dateSlotApi.update(editingDateSlot._id || editingDateSlot.date, dateSlotForm);
+        await dateSlotApi.update(editingDateSlot._id || editingDateSlot.date, dateSlotData);
         alert('Date slot updated successfully!');
       } else {
-        await dateSlotApi.create(dateSlotForm);
+        await dateSlotApi.create(dateSlotData);
         alert('Date slot created successfully!');
       }
       await loadAllData();
@@ -331,11 +345,21 @@ export default function CenterDashboard() {
   const handleStaffSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!centerId) {
+        alert('Center ID not found. Please refresh the page.');
+        return;
+      }
+
+      const staffData = {
+        ...staffForm,
+        centerId,
+      };
+
       if (editingStaff) {
-        await staffApi.update(editingStaff._id || String(editingStaff.id), staffForm);
+        await staffApi.update(editingStaff._id || String(editingStaff.id), staffData);
         alert('Staff member updated successfully!');
       } else {
-        await staffApi.create(staffForm);
+        await staffApi.create(staffData);
         alert('Staff member created successfully!');
       }
       await loadAllData();
