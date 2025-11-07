@@ -46,13 +46,10 @@ export default function Portal() {
   ]);
 
   useEffect(() => {
-    const auth = localStorage.getItem("isAuthenticated");
-    const needsOnboarding = localStorage.getItem("needsOnboarding");
+    const auth = localStorage.getItem("user");
 
     if (!auth) {
-      router.push("/login");
-    } else if (needsOnboarding === "true") {
-      router.push("/onboarding");
+      router.push("/");
     }
   }, [router]);
 
