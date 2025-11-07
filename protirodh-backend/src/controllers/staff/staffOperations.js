@@ -6,6 +6,7 @@ import { DateSlot } from '../../models/DateSlot.model.js';
 export const getStaffProfile = async (req, res) => {
   try {
     const staff = await req.staff;
+    console.log(staff, "st")
 
     await staff.populate('centerId', 'name address');
 

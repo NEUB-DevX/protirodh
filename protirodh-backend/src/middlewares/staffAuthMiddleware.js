@@ -12,7 +12,8 @@ export const authenticateStaffToken = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test');
+    console.log("Deco",decoded)
 
     if (decoded.role !== 'staff') {
       return res.status(403).json({
@@ -22,7 +23,9 @@ export const authenticateStaffToken = async (req, res, next) => {
     }
 
     // Get staff from database
-    const staff = await Staff.findById(decoded.id);
+    console.log("Dec",decoded.id)
+    const staff = await Staff.findById(decoded.staffId);
+    console.log(staff)
 
     if (!staff) {
       return res.status(404).json({
@@ -40,6 +43,7 @@ export const authenticateStaffToken = async (req, res, next) => {
 
     // Attach staff to request
     req.staff = staff;
+    console.log("Req staff", req.staff)
     next();
   } catch (error) {
     console.error('Staff authentication error:', error);
