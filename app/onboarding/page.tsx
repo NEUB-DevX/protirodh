@@ -8,14 +8,23 @@ export default function Onboarding() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    dateOfBirth: "",
+    // Personal Information
+    uid: "",
+    nid: "",
+    name: "",
+    dob: "",
     gender: "",
-    address: "",
+    b_group: "",
+    f_name: "",
+    m_name: "",
+    // Contact Information
     division: "",
-    district: "",
+    zila: "",
+    upzila: "",
+    village: "",
+    house: "",
+    // Additional
     emergencyContact: "",
-    medicalConditions: "",
-    allergies: "",
   });
 
   const handleLogout = () => {
@@ -28,7 +37,26 @@ export default function Onboarding() {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Complete onboarding
+      // Complete onboarding - save to localStorage
+      const onboardingData = {
+        uid: formData.uid,
+        nid: formData.nid,
+        b_group: formData.b_group,
+        gender: formData.gender,
+        name: formData.name,
+        dob: formData.dob,
+        f_name: formData.f_name,
+        m_name: formData.m_name,
+        contact: {
+          division: formData.division,
+          zila: formData.zila,
+          upzila: formData.upzila,
+          village: formData.village,
+          house: formData.house,
+        },
+      };
+      
+      localStorage.setItem("onboardingData", JSON.stringify(onboardingData));
       localStorage.setItem("needsOnboarding", "false");
       localStorage.setItem("onboardingCompleted", "true");
       router.push("/portal");
@@ -105,7 +133,7 @@ export default function Onboarding() {
                 {step > 3 ? <FaCheckCircle /> : "3"}
               </div>
               <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">Medical Info</p>
+                <p className="text-sm font-medium text-gray-900">Contact Info</p>
               </div>
             </div>
           </div>
@@ -129,21 +157,129 @@ export default function Onboarding() {
               <div className="space-y-6">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Date of Birth <span className="text-red-500">*</span>
+                    Full Name <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <FaCalendar className="text-gray-400" />
-                    </div>
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Father&apos;s Name <span className="text-red-500">*</span>
+                    </label>
                     <input
-                      type="date"
-                      value={formData.dateOfBirth}
+                      type="text"
+                      placeholder="Father's name"
+                      value={formData.f_name}
                       onChange={(e) =>
-                        setFormData({ ...formData, dateOfBirth: e.target.value })
+                        setFormData({ ...formData, f_name: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Mother&apos;s Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Mother's name"
+                      value={formData.m_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, m_name: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      National ID (NID) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter your NID number"
+                      value={formData.nid}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nid: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      UID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Unique ID (if available)"
+                      value={formData.uid}
+                      onChange={(e) =>
+                        setFormData({ ...formData, uid: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Date of Birth <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <FaCalendar className="text-gray-400" />
+                      </div>
+                      <input
+                        type="date"
+                        value={formData.dob}
+                        onChange={(e) =>
+                          setFormData({ ...formData, dob: e.target.value })
+                        }
+                        className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Blood Group
+                    </label>
+                    <select
+                      value={formData.b_group}
+                      onChange={(e) =>
+                        setFormData({ ...formData, b_group: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    >
+                      <option value="">Select Blood Group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                    </select>
                   </div>
                 </div>
 
@@ -168,22 +304,6 @@ export default function Onboarding() {
                     ))}
                   </div>
                 </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Emergency Contact Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+880 1XXX-XXXXXX"
-                    value={formData.emergencyContact}
-                    onChange={(e) =>
-                      setFormData({ ...formData, emergencyContact: e.target.value })
-                    }
-                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    required
-                  />
-                </div>
               </div>
             </div>
           )}
@@ -196,27 +316,6 @@ export default function Onboarding() {
               </div>
 
               <div className="space-y-6">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Full Address <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="pointer-events-none absolute top-3 left-3">
-                      <FaMapMarkerAlt className="text-gray-400" />
-                    </div>
-                    <textarea
-                      placeholder="Enter your complete address"
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      rows={3}
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -244,17 +343,69 @@ export default function Onboarding() {
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
-                      District <span className="text-red-500">*</span>
+                      Zila (District) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       placeholder="Enter your district"
-                      value={formData.district}
+                      value={formData.zila}
                       onChange={(e) =>
-                        setFormData({ ...formData, district: e.target.value })
+                        setFormData({ ...formData, zila: e.target.value })
                       }
                       className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Upazila
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter your upazila"
+                      value={formData.upzila}
+                      onChange={(e) =>
+                        setFormData({ ...formData, upzila: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Village/Area
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter your village or area"
+                      value={formData.village}
+                      onChange={(e) =>
+                        setFormData({ ...formData, village: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    House/Holding Number
+                  </label>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute top-3 left-3">
+                      <FaMapMarkerAlt className="text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Enter house/holding number"
+                      value={formData.house}
+                      onChange={(e) =>
+                        setFormData({ ...formData, house: e.target.value })
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                     />
                   </div>
                 </div>
@@ -265,47 +416,50 @@ export default function Onboarding() {
           {step === 3 && (
             <div>
               <div className="mb-8">
-                <h2 className="mb-2 text-2xl font-bold text-gray-900">Medical Information</h2>
+                <h2 className="mb-2 text-2xl font-bold text-gray-900">Contact & Emergency</h2>
                 <p className="text-gray-600">
-                  Help us provide better care (Optional)
+                  Final step - emergency contact information
                 </p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Known Medical Conditions
+                    Emergency Contact Number <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    placeholder="E.g., Diabetes, Hypertension, Asthma (Leave blank if none)"
-                    value={formData.medicalConditions}
+                  <input
+                    type="tel"
+                    placeholder="+880 1XXX-XXXXXX"
+                    value={formData.emergencyContact}
                     onChange={(e) =>
-                      setFormData({ ...formData, medicalConditions: e.target.value })
+                      setFormData({ ...formData, emergencyContact: e.target.value })
                     }
-                    rows={3}
                     className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    required
                   />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Known Allergies
-                  </label>
-                  <textarea
-                    placeholder="E.g., Penicillin, Eggs, Latex (Leave blank if none)"
-                    value={formData.allergies}
-                    onChange={(e) =>
-                      setFormData({ ...formData, allergies: e.target.value })
-                    }
-                    rows={3}
-                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    This number will be used in case of emergency
+                  </p>
                 </div>
 
                 <div className="rounded-lg bg-green-50 p-4">
                   <p className="text-sm text-green-900">
-                    <strong>Note:</strong> This information helps vaccination centers provide better care
-                    and identify any potential contraindications. All data is kept confidential.
+                    <strong>Review your information:</strong>
+                  </p>
+                  <div className="mt-3 space-y-1 text-sm text-green-800">
+                    <p><strong>Name:</strong> {formData.name || "Not provided"}</p>
+                    <p><strong>NID:</strong> {formData.nid || "Not provided"}</p>
+                    <p><strong>Date of Birth:</strong> {formData.dob || "Not provided"}</p>
+                    <p><strong>Gender:</strong> {formData.gender || "Not provided"}</p>
+                    <p><strong>Blood Group:</strong> {formData.b_group || "Not provided"}</p>
+                    <p><strong>Division:</strong> {formData.division || "Not provided"}</p>
+                    <p><strong>District:</strong> {formData.zila || "Not provided"}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
+                  <p className="text-sm text-gray-700">
+                    <strong>Note:</strong> All information will be kept confidential and used only for vaccination purposes. You can update this information later from your profile settings.
                   </p>
                 </div>
               </div>

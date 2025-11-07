@@ -11,6 +11,29 @@ export type AppointmentStatus = "scheduled" | "completed" | "cancelled" | "misse
 
 export type DoseNumber = 1 | 2 | 3 | "booster";
 
+export type BloodGroup = "A+" | "A-" | "B+" | "B-" | "O+" | "O-" | "AB+" | "AB-";
+
+export type Gender = "Male" | "Female" | "Other";
+
+// Onboarding Data Structure
+export interface OnboardingData {
+  uid: string;
+  nid: string;
+  b_group?: BloodGroup;
+  gender: Gender;
+  name: string;
+  dob: string;
+  f_name: string;
+  m_name: string;
+  contact: {
+    division?: string;
+    zila?: string;
+    upzila?: string;
+    village?: string;
+    house?: string;
+  };
+}
+
 export interface Citizen {
   id: string;
   name: string;
