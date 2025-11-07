@@ -28,7 +28,7 @@ export const handleGetUser = async (req, res) => {
       } else if (decoded.role === 'staff') {
         user = await Staff.findOne({ _id: decoded.staffId }, { password: 0 });
       } else if (decoded.role === 'hub') {
-        // user = await 
+        user = await UserModel.findOne({ uid : "e0b51181-0e90-426e-a074-c072e993ff99" }, { password: 0 }); 
       } else {
         user = await UserModel.findOne({ uid : decoded.uid }, { password: 0 });
       }

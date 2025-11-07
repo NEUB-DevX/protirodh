@@ -15,7 +15,7 @@ export const hubLogin = async (req, res) => {
 
     // Check against environment variables (admin credentials stored manually)
     const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin1234';
 
     if (username !== adminUsername || password !== adminPassword) {
       return res.status(401).json({
@@ -30,17 +30,19 @@ export const hubLogin = async (req, res) => {
         username,
         role: 'hub'
       },
-      process.env.JWT_SECRET || 'fallback_secret',
+      process.env.JWT_SECRET || 'test',
       { expiresIn: '24h' }
     );
 
     res.status(200).json({
       success: true,
       message: 'Hub admin login successful',
-      token,
+      data: {
+        token,
       user: {
         username,
         role: 'hub'
+      }
       }
     });
   } catch (error) {
