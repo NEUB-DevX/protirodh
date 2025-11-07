@@ -41,34 +41,102 @@ const vaccinationCenters = [
     name: "Dhaka Medical College Vaccination Center",
     address: "Bakshibazar, Dhaka-1000",
     division: "Dhaka",
+    zila: "Dhaka",
+    upzila: "Mohammadpur",
   },
   {
     id: "vc002",
     name: "Chittagong Medical College Center",
     address: "K.B. Fazlul Kader Road, Chittagong",
     division: "Chittagong",
+    zila: "Chittagong",
+    upzila: "Panchlaish",
   },
   {
     id: "vc003",
     name: "Rajshahi Medical College Center",
     address: "Laxmipur, Rajshahi",
     division: "Rajshahi",
+    zila: "Rajshahi",
+    upzila: "Boalia",
+  },
+  {
+    id: "vc004",
+    name: "Mirpur Community Health Center",
+    address: "Mirpur-10, Dhaka",
+    division: "Dhaka",
+    zila: "Dhaka",
+    upzila: "Mirpur",
+  },
+  {
+    id: "vc005",
+    name: "Uttara Modern Medical Center",
+    address: "Sector-7, Uttara, Dhaka",
+    division: "Dhaka",
+    zila: "Dhaka",
+    upzila: "Uttara",
   },
 ];
 
-const timeSlots = [
-  { id: "slot1", time: "9:00 AM - 10:00 AM", available: true },
-  { id: "slot2", time: "10:00 AM - 11:00 AM", available: true },
-  { id: "slot3", time: "11:00 AM - 12:00 PM", available: false },
-  { id: "slot4", time: "12:00 PM - 1:00 PM", available: true },
-  { id: "slot5", time: "2:00 PM - 3:00 PM", available: true },
-  { id: "slot6", time: "3:00 PM - 4:00 PM", available: true },
-  { id: "slot7", time: "4:00 PM - 5:00 PM", available: false },
-];
+// Mock function to get available date slots for a center
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getAvailableDateSlots = (_centerId: string) => {
+  const today = new Date();
+  const slots: Array<{
+    id: string;
+    date: string;
+    available: boolean;
+    slotsLeft: number;
+  }> = [];
+  for (let i = 1; i <= 14; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    // Mock: Skip some dates to simulate unavailability
+    if (i !== 3 && i !== 7 && i !== 10) {
+      slots.push({
+        id: `date-${i}`,
+        date: date.toISOString().split("T")[0],
+        available: true,
+        slotsLeft: Math.floor(Math.random() * 20) + 5,
+      });
+    }
+  }
+  return slots;
+};
+
+// Mock function to get time slots for a specific date
+const getTimeSlots = (_centerId: string, date: string) => {
+  // Mock: Return different availability based on date
+  const dayOfWeek = new Date(date).getDay();
+  return [
+    { id: "slot1", time: "9:00 AM - 10:00 AM", available: dayOfWeek !== 0 },
+    { id: "slot2", time: "10:00 AM - 11:00 AM", available: true },
+    { id: "slot3", time: "11:00 AM - 12:00 PM", available: dayOfWeek !== 5 },
+    { id: "slot4", time: "12:00 PM - 1:00 PM", available: true },
+    { id: "slot5", time: "2:00 PM - 3:00 PM", available: dayOfWeek !== 6 },
+    { id: "slot6", time: "3:00 PM - 4:00 PM", available: true },
+    { id: "slot7", time: "4:00 PM - 5:00 PM", available: dayOfWeek !== 0 },
+  ];
+};
 
 export default function ApplyVaccine() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [availableDates, setAvailableDates] = useState<
+    Array<{
+      id: string;
+      date: string;
+      available: boolean;
+      slotsLeft: number;
+    }>
+  >([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<
+    Array<{
+      id: string;
+      time: string;
+      available: boolean;
+    }>
+  >([]);
   const [formData, setFormData] = useState({
     vaccine: "",
     doseNumber: "",
@@ -76,6 +144,39 @@ export default function ApplyVaccine() {
     date: "",
     timeSlot: "",
   });
+
+  // Mock user data - get from localStorage in real app
+  const userData = {
+    division: "Dhaka",
+    zila: "Dhaka",
+    upzila: "Mirpur",
+  };
+
+  // Get suggested centers based on user location
+  const suggestedCenters = vaccinationCenters.filter(
+    (center) =>
+      center.division === userData.division &&
+      (center.zila === userData.zila || center.upzila === userData.upzila)
+  );
+
+  const otherCenters = vaccinationCenters.filter(
+    (center) => !suggestedCenters.includes(center)
+  );
+
+  // Update available dates when center is selected
+  const handleCenterSelect = (centerId: string) => {
+    setFormData({ ...formData, center: centerId, date: "", timeSlot: "" });
+    const dates = getAvailableDateSlots(centerId);
+    setAvailableDates(dates);
+    setAvailableTimeSlots([]);
+  };
+
+  // Update available time slots when date is selected
+  const handleDateSelect = (date: string) => {
+    setFormData({ ...formData, date, timeSlot: "" });
+    const slots = getTimeSlots(formData.center, date);
+    setAvailableTimeSlots(slots);
+  };
 
   const handleSubmit = () => {
     // Mock submission
@@ -198,47 +299,121 @@ export default function ApplyVaccine() {
         {step === 3 && (
           <div>
             <h2 className="mb-6 text-xl font-semibold text-gray-900">
-              Select Vaccination Center & Date
+              Select Vaccination Center
             </h2>
-            <div className="mb-6 space-y-4">
-              {vaccinationCenters.map((center) => (
-                <button
-                  key={center.id}
-                  onClick={() => setFormData({ ...formData, center: center.id })}
-                  className={`w-full rounded-xl border-2 p-6 text-left transition-all ${
-                    formData.center === center.id
-                      ? "border-green-600 bg-green-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <FaMapMarkerAlt className="mt-1 text-xl text-green-600" />
-                    <div>
-                      <h3 className="mb-1 font-semibold text-gray-900">{center.name}</h3>
-                      <p className="text-sm text-gray-600">{center.address}</p>
-                      <p className="mt-1 text-xs text-gray-500">Division: {center.division}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
 
-            {formData.center && (
-              <div className="mb-4">
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Preferred Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  required
-                />
+            {/* Suggested Centers */}
+            {suggestedCenters.length > 0 && (
+              <div className="mb-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-green-700">
+                    Recommended for You
+                  </h3>
+                  <span className="text-xs text-gray-500">Based on your location</span>
+                </div>
+                <div className="space-y-3">
+                  {suggestedCenters.map((center) => (
+                    <button
+                      key={center.id}
+                      onClick={() => handleCenterSelect(center.id)}
+                      className={`w-full rounded-xl border-2 p-5 text-left transition-all ${
+                        formData.center === center.id
+                          ? "border-green-600 bg-green-50"
+                          : "border-green-200 bg-green-50/30 hover:border-green-400 hover:bg-green-50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <FaMapMarkerAlt className="mt-1 text-xl text-green-600" />
+                        <div className="flex-1">
+                          <div className="mb-1 flex items-start justify-between">
+                            <h3 className="font-semibold text-gray-900">{center.name}</h3>
+                            <span className="rounded-full bg-green-600 px-2 py-0.5 text-xs font-semibold text-white">
+                              Near You
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">{center.address}</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {center.upzila}, {center.zila}, {center.division}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Other Centers */}
+            {otherCenters.length > 0 && (
+              <div className="mb-6">
+                <h3 className="mb-3 text-sm font-semibold text-gray-700">
+                  Other Centers
+                </h3>
+                <div className="space-y-3">
+                  {otherCenters.map((center) => (
+                    <button
+                      key={center.id}
+                      onClick={() => handleCenterSelect(center.id)}
+                      className={`w-full rounded-xl border-2 p-5 text-left transition-all ${
+                        formData.center === center.id
+                          ? "border-green-600 bg-green-50"
+                          : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <FaMapMarkerAlt className="mt-1 text-xl text-gray-400" />
+                        <div>
+                          <h3 className="mb-1 font-semibold text-gray-900">{center.name}</h3>
+                          <p className="text-sm text-gray-600">{center.address}</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {center.upzila}, {center.zila}, {center.division}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Available Dates */}
+            {formData.center && availableDates.length > 0 && (
+              <div className="mb-6">
+                <label className="mb-3 block text-sm font-semibold text-gray-900">
+                  Select Available Date <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {availableDates.map((dateSlot) => (
+                    <button
+                      key={dateSlot.id}
+                      onClick={() => handleDateSelect(dateSlot.date)}
+                      className={`rounded-lg border-2 p-3 text-center transition-all ${
+                        formData.date === dateSlot.date
+                          ? "border-green-600 bg-green-50"
+                          : "border-gray-200 bg-white hover:border-green-400 hover:bg-green-50"
+                      }`}
+                    >
+                      <div className="mb-1 text-sm font-bold text-gray-900">
+                        {new Date(dateSlot.date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {new Date(dateSlot.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                        })}
+                      </div>
+                      <div className="mt-1 text-xs font-medium text-green-600">
+                        {dateSlot.slotsLeft} slots
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Continue Button */}
             {formData.center && formData.date && (
               <button
                 onClick={() => setStep(4)}
@@ -264,8 +439,26 @@ export default function ApplyVaccine() {
             <h2 className="mb-6 text-xl font-semibold text-gray-900">
               Select Available Time Slot
             </h2>
+            
+            {/* Selected Date Display */}
+            {formData.date && (
+              <div className="mb-6 rounded-lg bg-green-50 p-4">
+                <div className="flex items-center gap-2 text-sm text-green-900">
+                  <FaClock className="text-green-600" />
+                  <span className="font-medium">
+                    {new Date(formData.date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {timeSlots.map((slot) => (
+              {availableTimeSlots.map((slot) => (
                 <button
                   key={slot.id}
                   onClick={() => {
@@ -296,6 +489,14 @@ export default function ApplyVaccine() {
                 </button>
               ))}
             </div>
+
+            {availableTimeSlots.length === 0 && (
+              <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
+                <p className="text-sm text-gray-600">
+                  No time slots available. Please select a different date.
+                </p>
+              </div>
+            )}
 
             {/* Summary */}
             {formData.timeSlot && selectedVaccine && selectedCenter && (
