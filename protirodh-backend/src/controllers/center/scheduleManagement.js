@@ -4,7 +4,8 @@ import { TimeSlot } from '../../models/TimeSlot.model.js';
 // Get all date slots for the center
 export const getDateSlots = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
+    console.log(centerId)
 
     const dateSlots = await DateSlot.find({ centerId })
       .sort({ date: 1 });
@@ -26,7 +27,7 @@ export const getDateSlots = async (req, res) => {
 // Create new date slot
 export const createDateSlot = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { date, capacity, status } = req.body;
 
     // Check if date slot already exists
@@ -66,7 +67,7 @@ export const createDateSlot = async (req, res) => {
 // Update date slot
 export const updateDateSlot = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { id } = req.params;
     const updates = req.body;
 
@@ -105,7 +106,7 @@ export const updateDateSlot = async (req, res) => {
 // Delete date slot
 export const deleteDateSlot = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { id } = req.params;
 
     const dateSlot = await DateSlot.findOne({ _id: id, centerId });
@@ -139,7 +140,7 @@ export const deleteDateSlot = async (req, res) => {
 // Get time slots for a specific date
 export const getTimeSlots = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { dateSlotId } = req.params;
 
     const timeSlots = await TimeSlot.find({ centerId, dateSlotId })
@@ -163,7 +164,7 @@ export const getTimeSlots = async (req, res) => {
 // Create new time slot
 export const createTimeSlot = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { dateSlotId, time, capacity, assignedStaffId } = req.body;
 
     // Verify date slot exists and belongs to center
@@ -207,7 +208,7 @@ export const createTimeSlot = async (req, res) => {
 // Update time slot
 export const updateTimeSlot = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { id } = req.params;
     const updates = req.body;
 
@@ -249,7 +250,7 @@ export const updateTimeSlot = async (req, res) => {
 // Delete time slot
 export const deleteTimeSlot = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { id } = req.params;
 
     const timeSlot = await TimeSlot.findOne({ _id: id, centerId });

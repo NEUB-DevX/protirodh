@@ -3,10 +3,13 @@ import { Staff } from '../../models/Staff.model.js';
 // Get all staff members for the center
 export const getCenterStaff = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = await req.center.id;
+    console.log(req.center)
 
-    const staff = await Staff.find({ centerId, status: { $ne: 'deleted' } })
+    const staff = await Staff.find({ centerId })
       .sort({ createdAt: -1 });
+    
+    console.log(staff)
 
     res.status(200).json({
       success: true,
@@ -25,7 +28,7 @@ export const getCenterStaff = async (req, res) => {
 // Create new staff member
 export const createStaff = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { staffId, name, email, phone, role, password } = req.body;
 
     // Check if staffId already exists
@@ -68,7 +71,7 @@ export const createStaff = async (req, res) => {
 // Update staff member
 export const updateStaff = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { id } = req.params;
     const updates = req.body;
 
@@ -108,7 +111,7 @@ export const updateStaff = async (req, res) => {
 // Delete staff member (soft delete)
 export const deleteStaff = async (req, res) => {
   try {
-    const centerId = req.center.centerId;
+    const centerId = req.center.id;
     const { id } = req.params;
 
     const staff = await Staff.findOne({ _id: id, centerId });

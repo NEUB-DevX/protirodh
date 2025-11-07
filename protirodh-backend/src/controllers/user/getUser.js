@@ -1,3 +1,5 @@
+import { Center } from '../../models/Center.model.js';
+import { Staff } from '../../models/Staff.model.js';
 import UserModel from '../../models/User.model.js';
 import jwt from 'jsonwebtoken';
 
@@ -16,10 +18,20 @@ export const handleGetUser = async (req, res) => {
       
           // Verify the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log(decoded)
             
             
-            // Optionally fetch full user details from database
-      const user = await UserModel.findOne({ uid: decoded.uid });
+      // Optionally fetch full user details from database
+      let user;
+      if (decoded.role === 'center') {
+        user = await Center.findOne({ _id: decoded.centerId }, { password: 0 });
+      } else if (decoded.role === 'staff') {
+        user = await Staff.findOne({ _id: decoded.staffId }, { password: 0 });
+      } else if (decoded.role === 'hub') {
+        // user = await 
+      } else {
+        user = await UserModel.findOne({ uid : decoded.uid }, { password: 0 });
+      }
       
       
             

@@ -14,7 +14,7 @@ export const authenticateCenterToken = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test');
 
     // Check if token is for center role
     if (decoded.role !== 'center') {
@@ -23,6 +23,8 @@ export const authenticateCenterToken = async (req, res, next) => {
         message: 'Invalid token type'
       });
     }
+
+    console.log(decoded.centerId)
 
     // Verify center still exists and is active
     const center = await Center.findById(decoded.centerId);

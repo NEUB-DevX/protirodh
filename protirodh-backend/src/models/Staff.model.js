@@ -53,7 +53,7 @@ const staffSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-staffSchema.index({ staffId: 1 });
-staffSchema.index({ centerId: 1, status: 1 });
+// staffSchema.index({ staffId: 1 });
+// staffSchema.index({ centerId: 1, status: 1 });
 
 export const Staff = mongoose.model('Staff', staffSchema);
