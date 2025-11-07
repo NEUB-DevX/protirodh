@@ -1,0 +1,427 @@
+"use client";
+
+import { useState } from "react";
+import {
+  FaSyringe,
+  FaHospital,
+  FaBoxes,
+  FaTruck,
+  FaChartLine,
+  FaUsers,
+  FaExclamationTriangle,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSignOutAlt,
+  FaUserCircle,
+} from "react-icons/fa";
+
+export default function HubDashboard() {
+  const [activeTab, setActiveTab] = useState<"vaccines" | "centers" | "stocks" | "movement" | "analytics">("vaccines");
+
+  // Mock data
+  const vaccines = [
+    { id: 1, name: "Pfizer-BioNTech", manufacturer: "Pfizer Inc.", doses: 2, temperature: "-70°C", efficacy: "95%" },
+    { id: 2, name: "Moderna", manufacturer: "Moderna Inc.", doses: 2, temperature: "-20°C", efficacy: "94%" },
+    { id: 3, name: "AstraZeneca", manufacturer: "AstraZeneca", doses: 2, temperature: "2-8°C", efficacy: "70%" },
+  ];
+
+  const centers = [
+    { id: 1, name: "Dhaka Medical College Center", address: "Bakshibazar, Dhaka-1000", division: "Dhaka", capacity: 500, staff: 12, status: "active" },
+    { id: 2, name: "Chittagong Medical Center", address: "K.B. Fazlul Kader Road", division: "Chittagong", capacity: 350, staff: 8, status: "active" },
+    { id: 3, name: "Mirpur Community Center", address: "Mirpur-10, Dhaka", division: "Dhaka", capacity: 200, staff: 6, status: "active" },
+  ];
+
+  const stockRequests = [
+    { id: 1, center: "Dhaka Medical College", vaccine: "Pfizer-BioNTech", quantity: 500, requested: "2024-11-05", status: "pending" },
+    { id: 2, center: "Chittagong Medical Center", vaccine: "Moderna", quantity: 300, requested: "2024-11-06", status: "approved" },
+    { id: 3, center: "Mirpur Community Center", vaccine: "AstraZeneca", quantity: 200, requested: "2024-11-07", status: "pending" },
+  ];
+
+  const movementLog = [
+    { id: 1, from: "Central Hub", to: "Dhaka Medical College", vaccine: "Pfizer", quantity: 1000, date: "2024-11-01", status: "delivered" },
+    { id: 2, from: "Central Hub", to: "Chittagong Medical", vaccine: "Moderna", quantity: 500, date: "2024-11-03", status: "in-transit" },
+    { id: 3, from: "Central Hub", to: "Mirpur Community", vaccine: "AstraZeneca", quantity: 300, date: "2024-11-05", status: "delivered" },
+  ];
+
+  const analytics = {
+    totalVaccinated: 125000,
+    totalStocks: 50000,
+    wastage: 2.3,
+    coverage: 68.5,
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+                <FaSyringe className="text-xl text-white" />
+              </div>
+              <div>
+                <span className="text-xl font-bold text-gray-900">Protirodh Hub</span>
+                <p className="text-xs text-gray-500">Central Management</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <FaUserCircle className="text-2xl text-gray-600" />
+                <span className="font-medium text-gray-900">Admin User</span>
+              </div>
+              <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                <FaSignOutAlt />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Stats Overview */}
+        <div className="mb-8 grid gap-6 md:grid-cols-4">
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-700">Total Vaccinated</span>
+              <FaUsers className="text-2xl text-blue-600" />
+            </div>
+            <p className="text-3xl font-bold text-blue-900">{analytics.totalVaccinated.toLocaleString()}</p>
+            <p className="mt-1 text-xs text-blue-600">+5% from last month</p>
+          </div>
+
+          <div className="rounded-xl border border-green-200 bg-green-50 p-6">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-green-700">Total Stock</span>
+              <FaBoxes className="text-2xl text-green-600" />
+            </div>
+            <p className="text-3xl font-bold text-green-900">{analytics.totalStocks.toLocaleString()}</p>
+            <p className="mt-1 text-xs text-green-600">Doses available</p>
+          </div>
+
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-red-700">Wastage Rate</span>
+              <FaExclamationTriangle className="text-2xl text-red-600" />
+            </div>
+            <p className="text-3xl font-bold text-red-900">{analytics.wastage}%</p>
+            <p className="mt-1 text-xs text-red-600">-0.5% improvement</p>
+          </div>
+
+          <div className="rounded-xl border border-purple-200 bg-purple-50 p-6">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-purple-700">Coverage</span>
+              <FaChartLine className="text-2xl text-purple-600" />
+            </div>
+            <p className="text-3xl font-bold text-purple-900">{analytics.coverage}%</p>
+            <p className="mt-1 text-xs text-purple-600">Population coverage</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6 flex gap-2 border-b border-gray-200">
+          {[
+            { id: "vaccines", label: "Vaccines", icon: FaSyringe },
+            { id: "centers", label: "Centers", icon: FaHospital },
+            { id: "stocks", label: "Stock Requests", icon: FaBoxes },
+            { id: "movement", label: "Movement", icon: FaTruck },
+            { id: "analytics", label: "Analytics", icon: FaChartLine },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`flex items-center gap-2 border-b-2 px-4 py-3 font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <tab.icon />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Vaccines Tab */}
+        {activeTab === "vaccines" && (
+          <div>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Vaccine Management</h2>
+              <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700">
+                <FaPlus />
+                Add Vaccine
+              </button>
+            </div>
+            <div className="space-y-4">
+              {vaccines.map((vaccine) => (
+                <div key={vaccine.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="mb-1 text-lg font-bold text-gray-900">{vaccine.name}</h3>
+                      <p className="mb-3 text-sm text-gray-600">{vaccine.manufacturer}</p>
+                      <div className="grid gap-4 md:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-gray-500">Number of Doses</p>
+                          <p className="font-semibold text-gray-900">{vaccine.doses}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Storage Temp</p>
+                          <p className="font-semibold text-gray-900">{vaccine.temperature}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Efficacy</p>
+                          <p className="font-semibold text-gray-900">{vaccine.efficacy}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50">
+                        <FaEdit />
+                      </button>
+                      <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Centers Tab */}
+        {activeTab === "centers" && (
+          <div>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Vaccination Centers</h2>
+              <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700">
+                <FaPlus />
+                Add Center
+              </button>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {centers.map((center) => (
+                <div key={center.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="mb-1 text-lg font-bold text-gray-900">{center.name}</h3>
+                      <p className="text-sm text-gray-600">{center.address}</p>
+                      <p className="mt-1 text-xs text-gray-500">Division: {center.division}</p>
+                    </div>
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                      {center.status}
+                    </span>
+                  </div>
+                  <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Daily Capacity</p>
+                      <p className="font-semibold text-gray-900">{center.capacity}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Staff Count</p>
+                      <p className="font-semibold text-gray-900">{center.staff}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                      <FaEdit className="inline mr-2" />
+                      Edit
+                    </button>
+                    <button className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">
+                      <FaTrash className="inline mr-2" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Stock Requests Tab */}
+        {activeTab === "stocks" && (
+          <div>
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">Stock Requests & Supply Chain</h2>
+            <div className="space-y-4">
+              {stockRequests.map((request) => (
+                <div key={request.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-gray-900">{request.center}</h3>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            request.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {request.status}
+                        </span>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div>
+                          <p className="text-xs text-gray-500">Vaccine</p>
+                          <p className="font-semibold text-gray-900">{request.vaccine}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Quantity</p>
+                          <p className="font-semibold text-gray-900">{request.quantity} doses</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Requested Date</p>
+                          <p className="font-semibold text-gray-900">{request.requested}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {request.status === "pending" && (
+                      <div className="ml-4 flex gap-2">
+                        <button className="rounded-lg bg-green-600 px-6 py-2 font-semibold text-white hover:bg-green-700">
+                          Approve
+                        </button>
+                        <button className="rounded-lg border border-red-300 bg-white px-6 py-2 font-semibold text-red-700 hover:bg-red-50">
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Movement Tab */}
+        {activeTab === "movement" && (
+          <div>
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">Vaccine Movement Tracking</h2>
+            <div className="space-y-4">
+              {movementLog.map((log) => (
+                <div key={log.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                      <FaTruck className="text-xl text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="mb-2 flex items-center justify-between">
+                        <h3 className="font-bold text-gray-900">
+                          {log.from} → {log.to}
+                        </h3>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            log.status === "delivered"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {log.status}
+                        </span>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div>
+                          <p className="text-xs text-gray-500">Vaccine</p>
+                          <p className="font-semibold text-gray-900">{log.vaccine}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Quantity</p>
+                          <p className="font-semibold text-gray-900">{log.quantity} doses</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Date</p>
+                          <p className="font-semibold text-gray-900">{log.date}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === "analytics" && (
+          <div>
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">Smart Insights & Analytics</h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Coverage by Region */}
+              <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 font-bold text-gray-900">Coverage by Division</h3>
+                <div className="space-y-3">
+                  {[
+                    { name: "Dhaka", coverage: 75, color: "bg-blue-600" },
+                    { name: "Chittagong", coverage: 68, color: "bg-green-600" },
+                    { name: "Rajshahi", coverage: 62, color: "bg-purple-600" },
+                    { name: "Khulna", coverage: 58, color: "bg-yellow-600" },
+                  ].map((division) => (
+                    <div key={division.name}>
+                      <div className="mb-1 flex items-center justify-between text-sm">
+                        <span className="font-medium text-gray-700">{division.name}</span>
+                        <span className="font-semibold text-gray-900">{division.coverage}%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-gray-200">
+                        <div
+                          className={`h-2 rounded-full ${division.color}`}
+                          style={{ width: `${division.coverage}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Demographics */}
+              <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 font-bold text-gray-900">Age Demographics</h3>
+                <div className="space-y-3">
+                  {[
+                    { age: "18-30", percentage: 25, vaccinated: 31250 },
+                    { age: "31-45", percentage: 35, vaccinated: 43750 },
+                    { age: "46-60", percentage: 28, vaccinated: 35000 },
+                    { age: "60+", percentage: 12, vaccinated: 15000 },
+                  ].map((demo) => (
+                    <div key={demo.age} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                      <div>
+                        <p className="font-semibold text-gray-900">{demo.age} years</p>
+                        <p className="text-xs text-gray-600">{demo.vaccinated.toLocaleString()} vaccinated</p>
+                      </div>
+                      <span className="text-2xl font-bold text-blue-600">{demo.percentage}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ML Insights */}
+              <div className="rounded-xl border border-purple-200 bg-purple-50 p-6 md:col-span-2">
+                <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
+                  <FaChartLine className="text-purple-600" />
+                  AI-Powered Insights
+                </h3>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-lg bg-white p-4">
+                    <p className="mb-2 text-sm font-medium text-gray-600">Predicted Demand</p>
+                    <p className="text-2xl font-bold text-purple-600">+15%</p>
+                    <p className="mt-1 text-xs text-gray-500">Next 30 days</p>
+                  </div>
+                  <div className="rounded-lg bg-white p-4">
+                    <p className="mb-2 text-sm font-medium text-gray-600">Optimal Stock Level</p>
+                    <p className="text-2xl font-bold text-purple-600">45,000</p>
+                    <p className="mt-1 text-xs text-gray-500">Recommended doses</p>
+                  </div>
+                  <div className="rounded-lg bg-white p-4">
+                    <p className="mb-2 text-sm font-medium text-gray-600">Wastage Reduction</p>
+                    <p className="text-2xl font-bold text-purple-600">-18%</p>
+                    <p className="mt-1 text-xs text-gray-500">Potential savings</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
