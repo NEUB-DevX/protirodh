@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaSyringe,
   FaHospital,
@@ -19,26 +19,8 @@ import {
   FaCopy,
 } from "react-icons/fa";
 import { useGlobal } from "../../context/GlobalContext";
-
-interface Vaccine {
-  id: number;
-  name: string;
-  manufacturer: string;
-  doses: number;
-  temperature: string;
-  efficacy: string;
-}
-
-interface Center {
-  id: number;
-  name: string;
-  address: string;
-  division: string;
-  capacity: number;
-  staff: number;
-  status: string;
-  password: string;
-}
+import { vaccineApi, centerApi, stockRequestApi, analyticsApi } from "../../../lib/api/hubApi";
+import type { Vaccine, Center, StockRequest, Analytics } from "../../../lib/types/hub.types";
 
 export default function HubDashboard() {
   const [activeTab, setActiveTab] = useState<
@@ -51,12 +33,54 @@ export default function HubDashboard() {
   const [editingVaccine, setEditingVaccine] = useState<Vaccine | null>(null);
   const [editingCenter, setEditingCenter] = useState<Center | null>(null);
 
+  // Data states
+  const [vaccines, setVaccines] = useState<Vaccine[]>([]);
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [stockRequests, setStockRequests] = useState<StockRequest[]>([]);
+  const [analytics, setAnalytics] = useState<Analytics>({
+    totalVaccinated: 0,
+    totalStocks: 0,
+    wastage: 0,
+    coverage: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Password visibility state for each center
   const [visiblePasswords, setVisiblePasswords] = useState<
     Record<number, boolean>
   >({});
 
   const { logout } = useGlobal();
+
+  // Load data on component mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [vaccinesRes, centersRes, stocksRes, analyticsRes] = await Promise.all([
+        vaccineApi.getAll(),
+        centerApi.getAll(),
+        stockRequestApi.getAll(),
+        analyticsApi.getDashboard(),
+      ]);
+
+      if (vaccinesRes.data) setVaccines(vaccinesRes.data);
+      if (centersRes.data) setCenters(centersRes.data);
+      if (stocksRes.data) setStockRequests(stocksRes.data);
+      if (analyticsRes.data) setAnalytics(analyticsRes.data);
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Form states
   const [vaccineForm, setVaccineForm] = useState({
@@ -73,98 +97,11 @@ export default function HubDashboard() {
     division: "",
     capacity: 0,
     staff: 0,
-    status: "active",
+    status: "active" as "active" | "inactive" | "maintenance",
     password: "",
   });
 
-  // Mock data
-  const vaccines = [
-    {
-      id: 1,
-      name: "Pfizer-BioNTech",
-      manufacturer: "Pfizer Inc.",
-      doses: 2,
-      temperature: "-70°C",
-      efficacy: "95%",
-    },
-    {
-      id: 2,
-      name: "Moderna",
-      manufacturer: "Moderna Inc.",
-      doses: 2,
-      temperature: "-20°C",
-      efficacy: "94%",
-    },
-    {
-      id: 3,
-      name: "AstraZeneca",
-      manufacturer: "AstraZeneca",
-      doses: 2,
-      temperature: "2-8°C",
-      efficacy: "70%",
-    },
-  ];
-
-  const centers = [
-    {
-      id: 1,
-      name: "Dhaka Medical College Center",
-      address: "Bakshibazar, Dhaka-1000",
-      division: "Dhaka",
-      capacity: 500,
-      staff: 12,
-      status: "active",
-      password: "DMC2024@secure",
-    },
-    {
-      id: 2,
-      name: "Chittagong Medical Center",
-      address: "K.B. Fazlul Kader Road",
-      division: "Chittagong",
-      capacity: 350,
-      staff: 8,
-      status: "active",
-      password: "CMC2024@secure",
-    },
-    {
-      id: 3,
-      name: "Mirpur Community Center",
-      address: "Mirpur-10, Dhaka",
-      division: "Dhaka",
-      capacity: 200,
-      staff: 6,
-      status: "active",
-      password: "MCC2024@secure",
-    },
-  ];
-
-  const stockRequests = [
-    {
-      id: 1,
-      center: "Dhaka Medical College",
-      vaccine: "Pfizer-BioNTech",
-      quantity: 500,
-      requested: "2024-11-05",
-      status: "pending",
-    },
-    {
-      id: 2,
-      center: "Chittagong Medical Center",
-      vaccine: "Moderna",
-      quantity: 300,
-      requested: "2024-11-06",
-      status: "approved",
-    },
-    {
-      id: 3,
-      center: "Mirpur Community Center",
-      vaccine: "AstraZeneca",
-      quantity: 200,
-      requested: "2024-11-07",
-      status: "pending",
-    },
-  ];
-
+  // Mock data for movement log (not yet implemented in backend)
   const movementLog = [
     {
       id: 1,
@@ -194,13 +131,6 @@ export default function HubDashboard() {
       status: "delivered",
     },
   ];
-
-  const analytics = {
-    totalVaccinated: 125000,
-    totalStocks: 50000,
-    wastage: 2.3,
-    coverage: 68.5,
-  };
 
   // Utility functions
   const togglePasswordVisibility = (centerId: number) => {
@@ -263,7 +193,7 @@ export default function HubDashboard() {
         capacity: center.capacity,
         staff: center.staff,
         status: center.status,
-        password: center.password,
+        password: center.password || '',
       });
     } else {
       setCenterForm({
@@ -289,24 +219,91 @@ export default function HubDashboard() {
     setEditingCenter(null);
   };
 
-  const handleVaccineSubmit = (e: React.FormEvent) => {
+  const handleVaccineSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In real app, this would call API
-    console.log(
-      editingVaccine ? "Updating vaccine:" : "Adding vaccine:",
-      vaccineForm,
-    );
-    closeVaccineModal();
+    try {
+      if (editingVaccine) {
+        const id = editingVaccine._id || editingVaccine.id?.toString() || '';
+        await vaccineApi.update(id, vaccineForm);
+      } else {
+        await vaccineApi.create(vaccineForm);
+      }
+      await loadAllData();
+      closeVaccineModal();
+    } catch (err) {
+      console.error('Error saving vaccine:', err);
+      alert(err instanceof Error ? err.message : 'Failed to save vaccine');
+    }
   };
 
-  const handleCenterSubmit = (e: React.FormEvent) => {
+  const handleCenterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In real app, this would call API
-    console.log(
-      editingCenter ? "Updating center:" : "Adding center:",
-      centerForm,
-    );
-    closeCenterModal();
+    try {
+      if (editingCenter) {
+        const id = editingCenter._id || editingCenter.id?.toString() || '';
+        await centerApi.update(id, centerForm);
+      } else {
+        await centerApi.create(centerForm);
+      }
+      await loadAllData();
+      closeCenterModal();
+    } catch (err) {
+      console.error('Error saving center:', err);
+      alert(err instanceof Error ? err.message : 'Failed to save center');
+    }
+  };
+
+  const handleDeleteVaccine = async (vaccine: Vaccine) => {
+    if (!confirm(`Are you sure you want to delete ${vaccine.name}?`)) return;
+    
+    try {
+      const id = vaccine._id || vaccine.id?.toString() || '';
+      await vaccineApi.delete(id);
+      await loadAllData();
+    } catch (err) {
+      console.error('Error deleting vaccine:', err);
+      alert(err instanceof Error ? err.message : 'Failed to delete vaccine');
+    }
+  };
+
+  const handleDeleteCenter = async (center: Center) => {
+    if (!confirm(`Are you sure you want to delete ${center.name}?`)) return;
+    
+    try {
+      const id = center._id || center.id?.toString() || '';
+      await centerApi.delete(id);
+      await loadAllData();
+    } catch (err) {
+      console.error('Error deleting center:', err);
+      alert(err instanceof Error ? err.message : 'Failed to delete center');
+    }
+  };
+
+  const handleApproveRequest = async (request: StockRequest) => {
+    try {
+      const id = request._id || request.id?.toString() || '';
+      await stockRequestApi.approve(id, {
+        approvedQuantity: request.quantity,
+      });
+      await loadAllData();
+    } catch (err) {
+      console.error('Error approving request:', err);
+      alert(err instanceof Error ? err.message : 'Failed to approve request');
+    }
+  };
+
+  const handleRejectRequest = async (request: StockRequest) => {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+    
+    try {
+      const id = request._id || request.id?.toString() || '';
+      await stockRequestApi.reject(id, { reason });
+      await loadAllData();
+    } catch (err) {
+      console.error('Error rejecting request:', err);
+      alert(err instanceof Error ? err.message : 'Failed to reject request');
+    }
   };
 
   return (
@@ -345,6 +342,34 @@ export default function HubDashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading data...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+            <div className="flex items-center gap-2">
+              <FaExclamationTriangle className="text-red-600" />
+              <p className="text-red-800 font-medium">Error: {error}</p>
+            </div>
+            <button
+              onClick={loadAllData}
+              className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && (
+          <>
         {/* Stats Overview */}
         <div className="mb-8 grid gap-6 md:grid-cols-4">
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
@@ -442,7 +467,7 @@ export default function HubDashboard() {
             <div className="space-y-4">
               {vaccines.map((vaccine) => (
                 <div
-                  key={vaccine.id}
+                  key={vaccine._id || vaccine.id}
                   className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                 >
                   <div className="flex items-start justify-between">
@@ -483,7 +508,10 @@ export default function HubDashboard() {
                       >
                         <FaEdit />
                       </button>
-                      <button className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50">
+                      <button 
+                        onClick={() => handleDeleteVaccine(vaccine)}
+                        className="rounded-lg border border-red-300 bg-white p-2 text-red-600 hover:bg-red-50"
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -510,9 +538,12 @@ export default function HubDashboard() {
               </button>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
-              {centers.map((center) => (
+              {centers.map((center) => {
+                const centerId = center._id || center.id?.toString() || '';
+                const displayId = center.id || 0;
+                return (
                 <div
-                  key={center.id}
+                  key={centerId}
                   className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                 >
                   <div className="mb-4 flex items-start justify-between">
@@ -544,7 +575,7 @@ export default function HubDashboard() {
                         </span>
                         <button
                           onClick={() =>
-                            copyToClipboard(center.id.toString(), "Center ID")
+                            copyToClipboard(centerId, "Center ID")
                           }
                           className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
                         >
@@ -552,30 +583,31 @@ export default function HubDashboard() {
                           Copy
                         </button>
                       </div>
-                      <p className="font-mono font-semibold text-gray-900">
-                        #{center.id.toString().padStart(4, "0")}
+                      <p className="font-mono text-sm font-semibold text-gray-900">
+                        {centerId}
                       </p>
                     </div>
 
                     {/* Password */}
+                    {center.password && (
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">Password:</span>
                         <div className="flex gap-1">
                           <button
-                            onClick={() => togglePasswordVisibility(center.id)}
+                            onClick={() => togglePasswordVisibility(displayId)}
                             className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 hover:bg-gray-200"
                           >
-                            {visiblePasswords[center.id] ? (
+                            {visiblePasswords[displayId] ? (
                               <FaEyeSlash className="text-xs" />
                             ) : (
                               <FaEye className="text-xs" />
                             )}
-                            {visiblePasswords[center.id] ? "Hide" : "Show"}
+                            {visiblePasswords[displayId] ? "Hide" : "Show"}
                           </button>
                           <button
                             onClick={() =>
-                              copyToClipboard(center.password, "Password")
+                              copyToClipboard(center.password!, "Password")
                             }
                             className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
                           >
@@ -585,11 +617,12 @@ export default function HubDashboard() {
                         </div>
                       </div>
                       <p className="font-mono font-semibold text-gray-900">
-                        {visiblePasswords[center.id]
+                        {visiblePasswords[displayId]
                           ? center.password
                           : "••••••••••••"}
                       </p>
                     </div>
+                    )}
                   </div>
 
                   <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4">
@@ -614,13 +647,16 @@ export default function HubDashboard() {
                       <FaEdit className="mr-2 inline" />
                       Edit
                     </button>
-                    <button className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">
+                    <button 
+                      onClick={() => handleDeleteCenter(center)}
+                      className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                    >
                       <FaTrash className="mr-2 inline" />
                       Delete
                     </button>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         )}
@@ -634,7 +670,7 @@ export default function HubDashboard() {
             <div className="space-y-4">
               {stockRequests.map((request) => (
                 <div
-                  key={request.id}
+                  key={request._id || request.id}
                   className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
@@ -647,7 +683,9 @@ export default function HubDashboard() {
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             request.status === "pending"
                               ? "bg-yellow-100 text-yellow-800"
-                              : "bg-green-100 text-green-800"
+                              : request.status === "approved"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
                           }`}
                         >
                           {request.status}
@@ -671,17 +709,23 @@ export default function HubDashboard() {
                             Requested Date
                           </p>
                           <p className="font-semibold text-gray-900">
-                            {request.requested}
+                            {request.requested || request.requestDate}
                           </p>
                         </div>
                       </div>
                     </div>
                     {request.status === "pending" && (
                       <div className="ml-4 flex gap-2">
-                        <button className="rounded-lg bg-green-600 px-6 py-2 font-semibold text-white hover:bg-green-700">
+                        <button 
+                          onClick={() => handleApproveRequest(request)}
+                          className="rounded-lg bg-green-600 px-6 py-2 font-semibold text-white hover:bg-green-700"
+                        >
                           Approve
                         </button>
-                        <button className="rounded-lg border border-red-300 bg-white px-6 py-2 font-semibold text-red-700 hover:bg-red-50">
+                        <button 
+                          onClick={() => handleRejectRequest(request)}
+                          className="rounded-lg border border-red-300 bg-white px-6 py-2 font-semibold text-red-700 hover:bg-red-50"
+                        >
                           Reject
                         </button>
                       </div>
@@ -859,6 +903,8 @@ export default function HubDashboard() {
               </div>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
 
@@ -1143,7 +1189,7 @@ export default function HubDashboard() {
                   <select
                     value={centerForm.status}
                     onChange={(e) =>
-                      setCenterForm({ ...centerForm, status: e.target.value })
+                      setCenterForm({ ...centerForm, status: e.target.value as 'active' | 'inactive' | 'maintenance' })
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                   >

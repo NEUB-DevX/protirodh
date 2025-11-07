@@ -19,7 +19,8 @@ import sendOTPRouterV1 from './routes/v1/auth/sendOTPRouter.js';
 import verifyOTPRouterV1 from './routes/v1/auth/verifyOTPRouter.js';
 import cron from 'node-cron';
 import { sendUpcomingVaccinationReminder } from './utils/sendUpcomingVaccinationReminder.js';
-import verifyVaccineRouterV1 from './routes/v1/verify-vaccination/verifyVaccinationRouter.js'
+import verifyVaccineRouterV1 from './routes/v1/verify-vaccination/verifyVaccinationRouter.js';
+import apiRoutes from './routes/index.js';
 
 const app = express();
 const PORT = 4113;
@@ -104,6 +105,8 @@ app.use(limiter);
 //verify vaccine
 app.use('/', verifyVaccineRouterV1);
 
+// ====== Vaccination Management API ======
+app.use('/api', apiRoutes);
 
 // ====== Routers ======
 app.use('/api/v1', userNoPasswordRouterV1);

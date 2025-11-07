@@ -118,7 +118,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        const res = await fetch(`api/user/get-user`, {
+        const res = await fetch(`${API_URL}/user/get-user`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
