@@ -17,45 +17,84 @@ export default function Login() {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // TODO: Call API to send OTP
-    // const response = await fetch('/api/auth/send-otp', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ idType, idNumber })
-    // });
-    
-    // Mock: Simulate API call delay
-    setTimeout(() => {
-      // Mock email associated with the ID
-      setEmail("u***r@example.com");
+    console.log(idNumber);
+    const response = await fetch(
+      "https://regina-untalented-sigmoidally.ngrok-free.dev/api/v1/auth/send-otp",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        body: JSON.stringify({ nid: idNumber }),
+      },
+    );
+
+    const data = await response.json();
+    console.log(data.data.email);
+    if (data.success) {
+      setEmail(data.data.email); // Assuming the API returns the email
       setStep("otp");
-      setIsLoading(false);
-    }, 1500);
+    } else {
+      alert("Failed to send OTP. Please check your ID and try again.");
+    }
+    setIsLoading(false);
+
+    // Mock: Simulate API call delay
+    // setTimeout(() => {
+    //   // Mock email associated with the ID
+    //   setEmail("u***r@example.com");
+    //   setStep("otp");
+    //   setIsLoading(false);
+    // }, 1500);
   };
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // TODO: Call API to verify OTP and get token
-    // const response = await fetch('/api/auth/verify-otp', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ idType, idNumber, otp })
-    // });
-    
-    // Mock: Simulate API call and store token
-    setTimeout(() => {
-      localStorage.setItem("authToken", "mock-token-" + Date.now());
+    const response = await fetch(
+      "https://regina-untalented-sigmoidally.ngrok-free.dev/api/v1/auth/verify-otp",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        body: JSON.stringify({ nid: idNumber, code: otp }),
+      },
+    );
+
+    const data = await response.json();
+    console.log(data.data)
+    if (data.success) {
+      localStorage.setItem("authToken", data.data.token);
       localStorage.setItem(
         "user",
         JSON.stringify({
           idType,
           idNumber,
           email,
-        })
+        }),
       );
       router.push("/portal");
-    }, 1500);
+    } else {
+      alert("Invalid OTP. Please try again.");
+      setIsLoading(false);
+    }
+
+    // Mock: Simulate API call and store token
+    // setTimeout(() => {
+    //   localStorage.setItem("authToken", "mock-token-" + Date.now());
+    //   localStorage.setItem(
+    //     "user",
+    //     JSON.stringify({
+    //       idType,
+    //       idNumber,
+    //       email,
+    //     }),
+    //   );
+    //   router.push("/portal");
+    // }, 1500);
   };
 
   return (
@@ -87,8 +126,8 @@ export default function Login() {
                 {step === "id" ? "Login to Protirodh" : "Verify OTP"}
               </h1>
               <p className="text-gray-600">
-                {step === "id" 
-                  ? "Enter your NID or Birth Certificate ID" 
+                {step === "id"
+                  ? "Enter your NID or Birth Certificate ID"
                   : `Enter the OTP sent to ${email}`}
               </p>
             </div>
@@ -128,7 +167,9 @@ export default function Login() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    {idType === "nid" ? "National ID Number" : "Birth Certificate Number"}{" "}
+                    {idType === "nid"
+                      ? "National ID Number"
+                      : "Birth Certificate Number"}{" "}
                     <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -138,13 +179,13 @@ export default function Login() {
                     <input
                       type="text"
                       placeholder={
-                        idType === "nid" 
-                          ? "Enter your NID number" 
+                        idType === "nid"
+                          ? "Enter your NID number"
                           : "Enter your Birth Certificate number"
                       }
                       value={idNumber}
                       onChange={(e) => setIdNumber(e.target.value)}
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pr-3 pl-10 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                       required
                       minLength={10}
                     />
@@ -157,7 +198,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-green-300 disabled:cursor-not-allowed"
+                  className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-green-300"
                 >
                   {isLoading ? "Sending OTP..." : "Send OTP"}
                 </button>
@@ -193,8 +234,10 @@ export default function Login() {
                       type="text"
                       placeholder="Enter 6-digit OTP"
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 text-center text-2xl font-semibold tracking-widest focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                      onChange={(e) =>
+                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                      }
+                      className="block w-full rounded-lg border border-gray-300 py-3 pr-3 pl-10 text-center text-2xl font-semibold tracking-widest focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                       required
                       maxLength={6}
                       pattern="\d{6}"
@@ -229,7 +272,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isLoading || otp.length !== 6}
-                    className="flex-1 rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-green-300 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-green-300"
                   >
                     {isLoading ? "Verifying..." : "Verify & Login"}
                   </button>
@@ -240,7 +283,10 @@ export default function Login() {
             {/* Info Box */}
             <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
               <p className="text-xs text-gray-600">
-                <strong>Note:</strong> Your {idType === "nid" ? "National ID" : "Birth Certificate"} must be registered in the system. If you&apos;re unable to login, please contact your nearest vaccination center.
+                <strong>Note:</strong> Your{" "}
+                {idType === "nid" ? "National ID" : "Birth Certificate"} must be
+                registered in the system. If you&apos;re unable to login, please
+                contact your nearest vaccination center.
               </p>
             </div>
           </div>
