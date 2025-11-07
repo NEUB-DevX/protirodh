@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaUser, FaLock, FaUserShield, FaHospital, FaUserMd } from "react-icons/fa";
+import { API_URL } from "../const/config";
 
 type Role = "hub" | "center" | "staff";
 
@@ -20,7 +21,7 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const endpoint = `http://localhost:4113/api/auth/${role}/login`;
+      const endpoint = `${API_URL}/auth/${role}/login`;
       const body = role === "hub" 
         ? { username: loginId, password }
         : role === "center"
@@ -37,9 +38,9 @@ export default function AdminLogin() {
 
       if (data.success) {
         // Store token based on role
-        const tokenKey = role === "hub" ? "adminToken" : role === "center" ? "centerToken" : "staffToken";
-        localStorage.setItem(tokenKey, data.token);
-        
+     //    const tokenKey = role === "hub" ? "adminToken" : role === "center" ? "centerToken" : "staffToken";
+        localStorage.setItem("token", data.data.token);
+        console.log(data.data.token)
         // Redirect based on role
         const redirectPath = role === "hub" ? "/hub" : role === "center" ? "/center" : "/staff";
         router.push(redirectPath);
