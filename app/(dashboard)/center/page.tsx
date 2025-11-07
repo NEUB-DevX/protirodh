@@ -129,7 +129,6 @@ export default function CenterDashboard() {
   const [error, setError] = useState<string | null>(null);
   // const [centerId, setCenterId] = useState<string>("");
 
-
   // Password visibility state for each staff member
   const [visiblePasswords, setVisiblePasswords] = useState<
     Record<number, boolean>
@@ -142,7 +141,7 @@ export default function CenterDashboard() {
       setLoading(true);
       setError(null);
 
-      console.log(user)
+      console.log(user);
 
       const [
         vaccinesRes,
@@ -156,8 +155,8 @@ export default function CenterDashboard() {
         stockRequestApi.getAll(),
         profileApi.get(),
         dashboardApi.get(),
-        staffApi.getAll(user?.id || ""),
-        dateSlotApi.getAll(user?.id || ""),
+        staffApi.getAll(),
+        dateSlotApi.getAll(),
       ]);
 
       if (vaccinesRes.data) setVaccines(vaccinesRes.data);
@@ -342,9 +341,9 @@ export default function CenterDashboard() {
   const handleDateSlotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if(!user){
+      if (!user) {
         alert("User not found. Please refresh the page.");
-        return; 
+        return;
       }
 
       if (!user.id) {
