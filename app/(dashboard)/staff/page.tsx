@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaCalendarCheck,
@@ -17,125 +17,71 @@ import {
   FaSort,
 } from "react-icons/fa";
 import { useGlobal } from "@/app/context/GlobalContext";
-
-interface Appointment {
-  id: number;
-  patientName: string;
-  nid: string;
-  contact: string;
-  vaccine: string;
-  dose: number;
-  time: string;
-  date: string;
-  status: "pending" | "completed" | "no-show";
-}
+import { staffProfileApi, staffDashboardApi, appointmentsApi } from "@/lib/api/staffApi";
+import type { StaffProfile, StaffDashboard, Appointment } from "@/lib/types/staff.types";
 
 export default function StaffDashboard() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed" | "no-show">("all");
   const [sortBy, setSortBy] = useState<"time" | "name">("time");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {logout, user} = useGlobal();
 
-  // Mock data
+  // Data states
+  const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
+  const [dashboard, setDashboard] = useState<StaffDashboard | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  // Staff info from profile or user context
   const staffInfo = {
-    name: user?.name || "Staff Member",
-    role: "Vaccinator",
-    center: "Dhaka Medical College Center",
+    name: staffProfile?.name || user?.name || "Staff Member",
+    role: staffProfile?.role || "Vaccinator",
+    center: staffProfile?.center?.name || "Loading...",
     shift: "09:00 AM - 04:00 PM",
   };
 
-  const appointments: Appointment[] = [
-    {
-      id: 1,
-      patientName: "Rahima Begum",
-      nid: "1234567890123",
-      contact: "+8801712345678",
-      vaccine: "Pfizer-BioNTech",
-      dose: 1,
-      time: "09:15 AM",
-      date: "2024-11-08",
-      status: "completed",
-    },
-    {
-      id: 2,
-      patientName: "Abdul Karim",
-      nid: "2345678901234",
-      contact: "+8801812345679",
-      vaccine: "Moderna",
-      dose: 2,
-      time: "09:30 AM",
-      date: "2024-11-08",
-      status: "completed",
-    },
-    {
-      id: 3,
-      patientName: "Fatima Akter",
-      nid: "3456789012345",
-      contact: "+8801912345680",
-      vaccine: "Pfizer-BioNTech",
-      dose: 1,
-      time: "09:45 AM",
-      date: "2024-11-08",
-      status: "pending",
-    },
-    {
-      id: 4,
-      patientName: "Mohammad Hasan",
-      nid: "4567890123456",
-      contact: "+8801612345681",
-      vaccine: "AstraZeneca",
-      dose: 1,
-      time: "10:00 AM",
-      date: "2024-11-08",
-      status: "pending",
-    },
-    {
-      id: 5,
-      patientName: "Nasrin Sultana",
-      nid: "5678901234567",
-      contact: "+8801512345682",
-      vaccine: "Moderna",
-      dose: 2,
-      time: "10:15 AM",
-      date: "2024-11-08",
-      status: "pending",
-    },
-    {
-      id: 6,
-      patientName: "Khaled Ahmed",
-      nid: "6789012345678",
-      contact: "+8801712345683",
-      vaccine: "Pfizer-BioNTech",
-      dose: 2,
-      time: "10:30 AM",
-      date: "2024-11-08",
-      status: "pending",
-    },
-    {
-      id: 7,
-      patientName: "Sharmin Islam",
-      nid: "7890123456789",
-      contact: "+8801812345684",
-      vaccine: "AstraZeneca",
-      dose: 1,
-      time: "10:45 AM",
-      date: "2024-11-08",
-      status: "pending",
-    },
-  ];
+  // Load data on mount
+  const loadAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  // Filter and sort appointments
+      const [profileRes, dashboardRes, appointmentsRes] = await Promise.all([
+        staffProfileApi.get(),
+        staffDashboardApi.get(),
+        appointmentsApi.getAll({
+          status: filterStatus === "all" ? undefined : filterStatus,
+          search: searchQuery || undefined,
+        }),
+      ]);
+
+      if (profileRes.data) setStaffProfile(profileRes.data);
+      if (dashboardRes.data) setDashboard(dashboardRes.data);
+      if (appointmentsRes.data) setAppointments(appointmentsRes.data);
+    } catch (err) {
+      console.error("Error loading data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus, searchQuery]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
+
+  // Filter and sort appointments locally
   const filteredAppointments = appointments
     .filter((apt) => {
-      if (filterStatus !== "all" && apt.status !== filterStatus) return false;
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
-          apt.patientName.toLowerCase().includes(query) ||
-          apt.nid.includes(query) ||
-          apt.contact.includes(query)
+          apt.userId?.name?.toLowerCase().includes(query) ||
+          apt.userId?.nid?.includes(query) ||
+          apt.userId?.contact?.includes(query)
         );
       }
       return true;
@@ -144,16 +90,18 @@ export default function StaffDashboard() {
       if (sortBy === "time") {
         return a.time.localeCompare(b.time);
       } else {
-        return a.patientName.localeCompare(b.patientName);
+        return (a.userId?.name || "").localeCompare(b.userId?.name || "");
       }
     });
 
-  const stats = {
-    total: appointments.length,
-    completed: appointments.filter((a) => a.status === "completed").length,
-    pending: appointments.filter((a) => a.status === "pending").length,
-    noShow: appointments.filter((a) => a.status === "no-show").length,
-  };
+  const stats = dashboard
+    ? dashboard.today
+    : {
+        total: 0,
+        completed: 0,
+        pending: 0,
+        noShow: 0,
+      };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -189,6 +137,34 @@ export default function StaffDashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-600 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading appointments...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+            <div className="flex items-center gap-2">
+              <FaCalendarCheck className="text-red-600" />
+              <p className="text-red-800 font-medium">Error: {error}</p>
+            </div>
+            <button
+              onClick={loadAllData}
+              className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && (
+          <>
         {/* Stats Overview */}
         <div className="mb-8 grid gap-6 md:grid-cols-4">
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
@@ -292,8 +268,8 @@ export default function StaffDashboard() {
             <div className="space-y-4">
               {filteredAppointments.map((appointment) => (
                 <div
-                  key={appointment.id}
-                  onClick={() => router.push(`/staff/appointment/${appointment.id}`)}
+                  key={appointment._id}
+                  onClick={() => router.push(`/staff/appointment/${appointment._id}`)}
                   className={`cursor-pointer rounded-xl border p-6 shadow-sm transition-all ${
                     appointment.status === "completed"
                       ? "border-green-200 bg-green-50 hover:border-green-300"
@@ -322,16 +298,16 @@ export default function StaffDashboard() {
                         <div className="mb-3 flex items-start justify-between">
                           <div>
                             <h3 className="text-lg font-bold text-gray-900">
-                              {appointment.patientName}
+                              {appointment.userId?.name || "Unknown Patient"}
                             </h3>
                             <div className="mt-1 flex items-center gap-4 text-sm text-gray-600">
                               <span className="flex items-center gap-1">
                                 <FaIdCard className="text-gray-500" />
-                                {appointment.nid}
+                                {appointment.userId?.nid || "N/A"}
                               </span>
                               <span className="flex items-center gap-1">
                                 <FaPhone className="text-gray-500" />
-                                {appointment.contact}
+                                {appointment.userId?.contact || "N/A"}
                               </span>
                             </div>
                           </div>
@@ -358,7 +334,7 @@ export default function StaffDashboard() {
                             <p className="mb-1 text-xs text-gray-500">Vaccine</p>
                             <p className="flex items-center gap-1 font-semibold text-gray-900">
                               <FaSyringe className="text-green-600" />
-                              {appointment.vaccine}
+                              {appointment.vaccineId?.name || "Unknown"}
                             </p>
                           </div>
                           <div className="rounded-lg bg-white p-3">
@@ -390,6 +366,8 @@ export default function StaffDashboard() {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );

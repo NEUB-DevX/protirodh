@@ -2,6 +2,7 @@ import express from 'express';
 import authRoutes from './auth.routes.js';
 import hubRoutes from './hub.routes.js';
 import centerRoutes from './center.routes.js';
+import staffRoutes from './staff.routes.js';
 
 const router = express.Router();
 
@@ -9,6 +10,7 @@ const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/hub', hubRoutes);
 router.use('/center', centerRoutes);
+router.use('/staff', staffRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {
@@ -29,6 +31,7 @@ router.get('/', (req, res) => {
       authentication: '/api/auth',
       hub_management: '/api/hub',
       center_operations: '/api/center',
+      staff_operations: '/api/staff',
       health_check: '/api/health'
     }
   });
