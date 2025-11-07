@@ -39,7 +39,7 @@ export function Button({
   const baseStyles = "rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
   
   const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-blue-300",
+    primary: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-300",
     secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500 disabled:bg-gray-100",
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-red-300",
     success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-300",
@@ -73,7 +73,7 @@ export function Badge({ children, variant = "default" }: BadgeProps) {
     success: "bg-green-100 text-green-800",
     warning: "bg-yellow-100 text-yellow-800",
     danger: "bg-red-100 text-red-800",
-    info: "bg-blue-100 text-blue-800",
+    info: "bg-green-100 text-green-800",
   };
 
   return (
@@ -106,7 +106,7 @@ export function StatCard({ title, value, icon, trend, trendUp }: StatCardProps) 
             </p>
           )}
         </div>
-        <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+        <div className="rounded-full bg-green-100 p-3 text-green-600">
           {icon}
         </div>
       </div>
@@ -183,7 +183,7 @@ export function Input({
         value={value}
         onChange={onChange}
         required={required}
-        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
       />
     </div>
   );
@@ -216,7 +216,7 @@ export function Select({
         value={value}
         onChange={onChange}
         required={required}
-        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
       >
         <option value="">Select...</option>
         {options.map((option) => (

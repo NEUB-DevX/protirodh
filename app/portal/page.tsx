@@ -65,7 +65,7 @@ export default function Portal() {
     const styles = {
       confirmed: "bg-green-100 text-green-800 border-green-200",
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      completed: "bg-blue-100 text-blue-800 border-blue-200",
+      completed: "bg-green-100 text-green-800 border-green-200",
       cancelled: "bg-red-100 text-red-800 border-red-200",
     };
 
@@ -95,7 +95,7 @@ export default function Portal() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600">
                 <FaSyringe className="text-xl text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Protirodh</span>
@@ -131,9 +131,9 @@ export default function Portal() {
         <div className="mb-8 grid gap-6 md:grid-cols-3">
           <Link
             href="/portal/apply"
-            className="group rounded-2xl border-2 border-blue-200 bg-linear-to-br from-blue-50 to-blue-100 p-6 shadow-sm transition-all hover:scale-105 hover:border-blue-300 hover:shadow-md"
+            className="group rounded-2xl border-2 border-green-200 bg-linear-to-br from-green-50 to-green-100 p-6 shadow-sm transition-all hover:scale-105 hover:border-green-300 hover:shadow-md"
           >
-            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
+            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-600">
               <FaCalendarPlus className="text-xl text-white" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
@@ -181,7 +181,7 @@ export default function Portal() {
             <h2 className="text-xl font-bold text-gray-900">My Applications</h2>
             <Link
               href="/portal/apply"
-              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="text-sm font-medium text-green-600 hover:text-green-700"
             >
               Apply for new vaccine →
             </Link>
@@ -260,7 +260,7 @@ export default function Portal() {
               </p>
               <Link
                 href="/portal/apply"
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
               >
                 <FaCalendarPlus />
                 Apply Now

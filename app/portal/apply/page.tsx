@@ -128,14 +128,14 @@ export default function ApplyVaccine() {
                   }}
                   className={`w-full rounded-xl border-2 p-6 text-left transition-all ${
                     formData.vaccine === vaccine.id
-                      ? "border-blue-600 bg-blue-50"
+                      ? "border-green-600 bg-green-50"
                       : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="mb-2 flex items-center gap-3">
-                        <FaSyringe className="text-2xl text-blue-600" />
+                        <FaSyringe className="text-2xl text-green-600" />
                         <h3 className="text-lg font-semibold text-gray-900">
                           {vaccine.name}
                         </h3>
@@ -175,9 +175,9 @@ export default function ApplyVaccine() {
                     setFormData({ ...formData, doseNumber: dose.toString() });
                     setStep(3);
                   }}
-                  className="rounded-xl border-2 border-gray-200 bg-white p-6 text-center transition-all hover:border-blue-600 hover:bg-blue-50"
+                  className="rounded-xl border-2 border-gray-200 bg-white p-6 text-center transition-all hover:border-green-600 hover:bg-green-50"
                 >
-                  <div className="mb-3 text-3xl font-bold text-blue-600">{dose}</div>
+                  <div className="mb-3 text-3xl font-bold text-green-600">{dose}</div>
                   <p className="text-sm text-gray-600">
                     {typeof dose === "number" ? `Dose ${dose}` : "Booster Shot"}
                   </p>
@@ -207,12 +207,12 @@ export default function ApplyVaccine() {
                   onClick={() => setFormData({ ...formData, center: center.id })}
                   className={`w-full rounded-xl border-2 p-6 text-left transition-all ${
                     formData.center === center.id
-                      ? "border-blue-600 bg-blue-50"
+                      ? "border-green-600 bg-green-50"
                       : "border-gray-200 bg-white hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <FaMapMarkerAlt className="mt-1 text-xl text-blue-600" />
+                    <FaMapMarkerAlt className="mt-1 text-xl text-green-600" />
                     <div>
                       <h3 className="mb-1 font-semibold text-gray-900">{center.name}</h3>
                       <p className="text-sm text-gray-600">{center.address}</p>
@@ -233,7 +233,7 @@ export default function ApplyVaccine() {
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   min={new Date().toISOString().split("T")[0]}
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                   required
                 />
               </div>
@@ -242,7 +242,7 @@ export default function ApplyVaccine() {
             {formData.center && formData.date && (
               <button
                 onClick={() => setStep(4)}
-                className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                className="w-full rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
               >
                 Continue to Time Selection
               </button>
@@ -278,14 +278,14 @@ export default function ApplyVaccine() {
                     !slot.available
                       ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-50"
                       : formData.timeSlot === slot.time
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-gray-200 bg-white hover:border-blue-600"
+                        ? "border-green-600 bg-green-50"
+                        : "border-gray-200 bg-white hover:border-green-600"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <FaClock
-                        className={`text-xl ${slot.available ? "text-blue-600" : "text-gray-400"}`}
+                        className={`text-xl ${slot.available ? "text-green-600" : "text-gray-400"}`}
                       />
                       <span className="font-medium text-gray-900">{slot.time}</span>
                     </div>
@@ -299,7 +299,7 @@ export default function ApplyVaccine() {
 
             {/* Summary */}
             {formData.timeSlot && selectedVaccine && selectedCenter && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
+              <div className="rounded-xl border border-green-200 bg-green-50 p-6">
                 <h3 className="mb-4 font-semibold text-gray-900">Application Summary</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -331,7 +331,7 @@ export default function ApplyVaccine() {
                 </div>
                 <button
                   onClick={handleSubmit}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
                 >
                   <FaCheckCircle />
                   Confirm Application

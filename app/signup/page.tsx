@@ -32,13 +32,13 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-emerald-50">
       {/* Navigation */}
       <nav className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600">
                 <FaSyringe className="text-xl text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Protirodh</span>
@@ -47,7 +47,7 @@ export default function Signup() {
               href="/login"
               className="text-sm font-medium text-gray-700 hover:text-gray-900"
             >
-              Already have an account? <span className="text-blue-600">Login</span>
+              Already have an account? <span className="text-green-600">Login</span>
             </Link>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function Signup() {
                       onChange={(e) =>
                         setFormData({ ...formData, fullName: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -100,7 +100,7 @@ export default function Signup() {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -121,7 +121,7 @@ export default function Signup() {
                       onChange={(e) =>
                         setFormData({ ...formData, phone: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -136,7 +136,7 @@ export default function Signup() {
                     onChange={(e) =>
                       setFormData({ ...formData, idType: e.target.value })
                     }
-                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                     required
                   >
                     <option value="">Select ID Type</option>
@@ -161,7 +161,7 @@ export default function Signup() {
                       onChange={(e) =>
                         setFormData({ ...formData, idNumber: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -182,7 +182,7 @@ export default function Signup() {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                       minLength={6}
                     />
@@ -204,7 +204,7 @@ export default function Signup() {
                       onChange={(e) =>
                         setFormData({ ...formData, confirmPassword: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                       minLength={6}
                     />
@@ -215,16 +215,16 @@ export default function Signup() {
               <div className="flex items-start">
                 <input
                   type="checkbox"
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                   required
                 />
                 <label className="ml-2 text-sm text-gray-700">
                   I agree to the{" "}
-                  <Link href="/terms" className="font-medium text-blue-600 hover:text-blue-700">
+                  <Link href="/terms" className="font-medium text-green-600 hover:text-green-700">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-700">
+                  <Link href="/privacy" className="font-medium text-green-600 hover:text-green-700">
                     Privacy Policy
                   </Link>
                 </label>
@@ -232,7 +232,7 @@ export default function Signup() {
 
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700"
               >
                 Create Account
                 <FaArrowRight />
@@ -244,7 +244,7 @@ export default function Signup() {
                 Already have an account?{" "}
                 <Link
                   href="/login"
-                  className="font-semibold text-blue-600 hover:text-blue-700"
+                  className="font-semibold text-green-600 hover:text-green-700"
                 >
                   Login here
                 </Link>

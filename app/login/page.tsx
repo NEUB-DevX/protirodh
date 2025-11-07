@@ -21,13 +21,13 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-emerald-50">
       {/* Navigation */}
       <nav className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600">
                 <FaSyringe className="text-xl text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Protirodh</span>
@@ -36,7 +36,7 @@ export default function Login() {
               href="/signup"
               className="text-sm font-medium text-gray-700 hover:text-gray-900"
             >
-              Don&apos;t have an account? <span className="text-blue-600">Sign up</span>
+              Don&apos;t have an account? <span className="text-green-600">Sign up</span>
             </Link>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function Login() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                     required
                   />
                 </div>
@@ -88,7 +88,7 @@ export default function Login() {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
-                    className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                     required
                   />
                 </div>
@@ -98,13 +98,13 @@ export default function Login() {
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Remember me</span>
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                  className="text-sm font-medium text-green-600 hover:text-green-700"
                 >
                   Forgot password?
                 </Link>
@@ -112,7 +112,7 @@ export default function Login() {
 
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-green-700"
               >
                 Login to Portal
                 <FaArrowRight />
@@ -124,7 +124,7 @@ export default function Login() {
                 Don&apos;t have an account?{" "}
                 <Link
                   href="/signup"
-                  className="font-semibold text-blue-600 hover:text-blue-700"
+                  className="font-semibold text-green-600 hover:text-green-700"
                 >
                   Sign up for free
                 </Link>

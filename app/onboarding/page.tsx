@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FaSyringe, FaMapMarkerAlt, FaCalendar, FaCheckCircle, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { FaSyringe, FaMapMarkerAlt, FaCalendar, FaCheckCircle, FaArrowRight, FaArrowLeft, FaSignOutAlt } from "react-icons/fa";
 
 export default function Onboarding() {
   const router = useRouter();
@@ -17,6 +17,12 @@ export default function Onboarding() {
     medicalConditions: "",
     allergies: "",
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("needsOnboarding");
+    router.push("/login");
+  };
 
   const handleNext = () => {
     if (step < 3) {
@@ -36,20 +42,24 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-emerald-50">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600">
                 <FaSyringe className="text-xl text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Protirodh</span>
             </div>
-            <div className="text-sm font-medium text-gray-600">
-              Step {step} of 3
-            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+            >
+              <FaSignOutAlt />
+              Logout
+            </button>
           </div>
         </div>
       </div>
@@ -61,7 +71,7 @@ export default function Onboarding() {
             <div className="flex flex-1 items-center gap-2">
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                  step >= 1 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                  step >= 1 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
                 }`}
               >
                 {step > 1 ? <FaCheckCircle /> : "1"}
@@ -75,7 +85,7 @@ export default function Onboarding() {
             <div className="flex flex-1 items-center gap-2">
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                  step >= 2 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                  step >= 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
                 }`}
               >
                 {step > 2 ? <FaCheckCircle /> : "2"}
@@ -89,7 +99,7 @@ export default function Onboarding() {
             <div className="flex items-center gap-2">
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                  step >= 3 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                  step >= 3 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
                 }`}
               >
                 {step > 3 ? <FaCheckCircle /> : "3"}
@@ -131,7 +141,7 @@ export default function Onboarding() {
                       onChange={(e) =>
                         setFormData({ ...formData, dateOfBirth: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -149,7 +159,7 @@ export default function Onboarding() {
                         onClick={() => setFormData({ ...formData, gender })}
                         className={`rounded-lg border-2 py-3 font-medium transition-all ${
                           formData.gender === gender
-                            ? "border-blue-600 bg-blue-50 text-blue-600"
+                            ? "border-green-600 bg-green-50 text-green-600"
                             : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
                         }`}
                       >
@@ -170,7 +180,7 @@ export default function Onboarding() {
                     onChange={(e) =>
                       setFormData({ ...formData, emergencyContact: e.target.value })
                     }
-                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                     required
                   />
                 </div>
@@ -201,7 +211,7 @@ export default function Onboarding() {
                         setFormData({ ...formData, address: e.target.value })
                       }
                       rows={3}
-                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -217,7 +227,7 @@ export default function Onboarding() {
                       onChange={(e) =>
                         setFormData({ ...formData, division: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     >
                       <option value="">Select Division</option>
@@ -243,7 +253,7 @@ export default function Onboarding() {
                       onChange={(e) =>
                         setFormData({ ...formData, district: e.target.value })
                       }
-                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                       required
                     />
                   </div>
@@ -273,7 +283,7 @@ export default function Onboarding() {
                       setFormData({ ...formData, medicalConditions: e.target.value })
                     }
                     rows={3}
-                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                   />
                 </div>
 
@@ -288,12 +298,12 @@ export default function Onboarding() {
                       setFormData({ ...formData, allergies: e.target.value })
                     }
                     rows={3}
-                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="block w-full rounded-lg border border-gray-300 py-3 px-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                   />
                 </div>
 
-                <div className="rounded-lg bg-blue-50 p-4">
-                  <p className="text-sm text-blue-900">
+                <div className="rounded-lg bg-green-50 p-4">
+                  <p className="text-sm text-green-900">
                     <strong>Note:</strong> This information helps vaccination centers provide better care
                     and identify any potential contraindications. All data is kept confidential.
                   </p>
@@ -315,7 +325,7 @@ export default function Onboarding() {
             )}
             <button
               onClick={handleNext}
-              className={`ml-auto flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 ${
+              className={`ml-auto flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700 ${
                 step === 1 && "w-full justify-center"
               }`}
             >

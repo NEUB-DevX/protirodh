@@ -11,7 +11,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600">
                 <FaSyringe className="text-xl text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Protirodh</span>
@@ -25,7 +25,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
               >
                 Sign Up
               </Link>
@@ -38,13 +38,13 @@ export default function Home() {
       <section className="px-4 pt-32 pb-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
-              <FaShieldAlt className="text-blue-600" />
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
+              <FaShieldAlt className="text-green-600" />
               Safe, Secure & Verified
             </div>
             <h1 className="mb-6 text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
               Your Digital Vaccination
-              <span className="block text-blue-600">Passport Awaits</span>
+              <span className="block text-green-600">Passport Awaits</span>
             </h1>
             <p className="mx-auto mb-8 max-w-2xl text-lg text-gray-600 sm:text-xl">
               Register, apply for vaccines, and manage your vaccination records all in one place.
@@ -53,7 +53,7 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/signup"
-                className="group flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
+                className="group flex items-center gap-2 rounded-xl bg-green-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:bg-green-700 hover:shadow-xl"
               >
                 Get Started Free
                 <FaArrowRight className="transition-transform group-hover:translate-x-1" />
@@ -97,8 +97,8 @@ export default function Home() {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md">
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-                <FaMobileAlt className="text-xl text-blue-600" />
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+                <FaMobileAlt className="text-xl text-green-600" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-gray-900">Easy Registration</h3>
               <p className="text-gray-600">
@@ -107,8 +107,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md">
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-                <FaSyringe className="text-xl text-green-600" />
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
+                <FaSyringe className="text-xl text-emerald-600" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-gray-900">Apply for Vaccines</h3>
               <p className="text-gray-600">
@@ -137,8 +137,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md">
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-red-100">
-                <FaCheckCircle className="text-xl text-red-600" />
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-teal-100">
+                <FaCheckCircle className="text-xl text-teal-600" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-gray-900">Real-time Updates</h3>
               <p className="text-gray-600">
@@ -147,8 +147,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-shadow hover:shadow-md">
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100">
-                <FaMobileAlt className="text-xl text-indigo-600" />
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+                <FaMobileAlt className="text-xl text-green-600" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-gray-900">Mobile Friendly</h3>
               <p className="text-gray-600">
@@ -162,21 +162,21 @@ export default function Home() {
       {/* CTA Section */}
       <section className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl bg-linear-to-br from-blue-600 to-blue-700 px-8 py-16 text-center shadow-2xl sm:px-16">
+          <div className="rounded-3xl bg-linear-to-br from-green-600 to-green-700 px-8 py-16 text-center shadow-2xl sm:px-16">
             <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
               Ready to Get Started?
             </h2>
-            <p className="mb-8 text-lg text-blue-100">
+            <p className="mb-8 text-lg text-green-100">
               Join thousands of citizens managing their vaccination digitally
             </p>
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg transition-all hover:bg-gray-50 hover:shadow-xl"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-green-600 shadow-lg transition-all hover:bg-gray-50 hover:shadow-xl"
             >
               Create Your Account
               <FaArrowRight />
             </Link>
-            <p className="mt-6 text-sm text-blue-200">
+            <p className="mt-6 text-sm text-green-200">
               Already have an account?{" "}
               <Link href="/login" className="font-semibold text-white underline">
                 Login here
@@ -191,7 +191,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600">
                 <FaSyringe className="text-xl text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Protirodh</span>
