@@ -19,13 +19,8 @@ import { useGlobal } from "../context/GlobalContext";
 
 export default function Portal() {
 
-  const {logout} = useGlobal();
-  const [userName] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userName") || "User";
-    }
-    return "User";
-  });
+  const {logout, user} = useGlobal();
+
   const [applications] = useState([
     {
       id: "APP001",
@@ -95,7 +90,7 @@ export default function Portal() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <FaUserCircle className="text-2xl text-gray-600" />
-                <span className="font-medium text-gray-900">{userName}</span>
+                <span className="font-medium text-gray-900">{user?.name}</span>
               </div>
               <button
                 onClick={() => logout()}
@@ -114,7 +109,7 @@ export default function Portal() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            Welcome back, {userName}!
+            Welcome back, {user?.name}!
           </h1>
           <p className="text-gray-600">Manage your vaccination journey here</p>
         </div>
