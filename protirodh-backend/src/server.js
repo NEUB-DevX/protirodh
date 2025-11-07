@@ -112,7 +112,7 @@ app.use(limiter);
 app.use('/', verifyVaccineRouterV1);
 
 // ====== Vaccination Management API ======
-app.use('/api', apiRoutes);
+app.use('/api/v1', apiRoutes);
 
 // ====== Routers ======
 app.use('/api/v1', userNoPasswordRouterV1);

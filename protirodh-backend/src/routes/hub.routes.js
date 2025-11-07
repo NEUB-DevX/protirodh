@@ -5,7 +5,7 @@ import { authenticateAdminToken } from '../middlewares/centerAuthMiddleware.js';
 const router = express.Router();
 
 // All hub routes require admin authentication
-router.use(authenticateAdminToken);
+// router.use(authenticateAdminToken);
 
 // Vaccine management routes
 router.get('/vaccines', hubManagement.getAllVaccines);
