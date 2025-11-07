@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaSyringe, FaShieldAlt, FaCalendarCheck, FaMobileAlt, FaCheckCircle, FaArrowRight } from "react-icons/fa";
+import { FaSyringe, FaCalendarCheck, FaShieldAlt, FaArrowRight, FaCheckCircle, FaMobileAlt } from "react-icons/fa";
 
 export default function Home() {
   return (
@@ -19,15 +19,10 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
+                className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 font-semibold text-white transition-colors hover:bg-green-700"
               >
+                <FaSyringe className="text-sm" />
                 Login
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-              >
-                Sign Up
               </Link>
             </div>
           </div>
