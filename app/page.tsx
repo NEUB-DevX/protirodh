@@ -47,7 +47,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                href="/signup"
+                href="/login"
                 className="group flex items-center gap-2 rounded-xl bg-green-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:bg-green-700 hover:shadow-xl"
               >
                 Get Started Free
@@ -165,18 +165,12 @@ export default function Home() {
               Join thousands of citizens managing their vaccination digitally
             </p>
             <Link
-              href="/signup"
+              href="/login"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-green-600 shadow-lg transition-all hover:bg-gray-50 hover:shadow-xl"
             >
-              Create Your Account
+              Take Vaccine Now
               <FaArrowRight />
             </Link>
-            <p className="mt-6 text-sm text-green-200">
-              Already have an account?{" "}
-              <Link href="/login" className="font-semibold text-white underline">
-                Login here
-              </Link>
-            </p>
           </div>
         </div>
       </section>
