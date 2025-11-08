@@ -77,13 +77,6 @@ export default function VaccinationCertificate() {
                 <FaPrint />
                 Print
               </button>
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-green-700"
-              >
-                <FaDownload />
-                Download PDF
-              </button>
             </div>
           </div>
         </div>
