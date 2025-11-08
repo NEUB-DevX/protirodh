@@ -131,8 +131,9 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error("Login failed");
       }
 
-      // Store token
+      // Store token and user
       localStorage.setItem("token", data.data.token);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
 
       setUser(data.data.user);
 

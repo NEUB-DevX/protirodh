@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft, FaCheckCircle } from "react-icons/fa";
-import { vaccinesApi, centersApi, appointmentsApi } from "@/lib/api/userApi";
+import { vaccinesApi, centersApi } from "@/lib/api/userApi";
 import { API_URL } from "@/app/const/config";
+import { useGlobal } from "@/app/context/GlobalContext";
 
 export default function ApplyVaccine() {
   const router = useRouter();
+  const { user } = useGlobal();
   const [loading, setLoading] = useState(false);
   //eslint-disable-next-line
   const [vaccines, setVaccines] = useState<any[]>([]);
@@ -24,7 +26,6 @@ export default function ApplyVaccine() {
     vaccineId: "",
     centerId: "",
     preferredDate: "",
-    preferredTime: "",
     notes: "",
   });
 
@@ -70,16 +71,56 @@ export default function ApplyVaccine() {
     setError("");
 
     try {
-      await appointmentsApi.create({
-        vaccineId: formData.vaccineId,
-        centerId: formData.centerId,
-        dateSlotId: formData.preferredDate, // Using date as placeholder
-        timeSlotId: formData.preferredTime, // Using time as placeholder
-        notes: formData.notes,
+      // Get userId from context or localStorage
+      let userId = user?.id || user?.uid;
+      
+      if (!userId) {
+        // Fallback to localStorage
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          try {
+            const userData = JSON.parse(userStr);
+            userId = userData._id || userData.id || userData.uid;
+          } catch (err) {
+            console.error("Error parsing user data:", err);
+          }
+        }
+      }
+      
+      if (!userId) {
+        setError("User not authenticated. Please login again.");
+        return;
+      }
+
+      // Submit directly to the new appointments endpoint
+      const response = await fetch(`${API_URL}/appointments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          vaccineId: formData.vaccineId,
+          centerId: formData.centerId,
+          dateSlotId: formData.preferredDate,
+          notes: formData.notes || "",
+        }),
       });
 
-      alert("Application submitted successfully! You will be contacted soon.");
-      router.push("/portal");
+      const data = await response.json();
+
+      if (data.success) {
+        const timeSlot = data.data.timeSlot;
+        alert(
+          `Appointment created successfully!\n\n` +
+          `Date: ${new Date(data.data.appointment.date).toLocaleDateString()}\n` +
+          `Time: ${timeSlot.startTime} - ${timeSlot.endTime}\n\n` +
+          `You will receive a confirmation email shortly.`
+        );
+        router.push("/portal");
+      } else {
+        setError(data.message || "Failed to create appointment");
+      }
     } catch (err) {
       console.error("Error submitting form:", err);
       setError("Failed to submit application. Please try again.");
@@ -156,7 +197,7 @@ export default function ApplyVaccine() {
               >
                 <option value="">Select a vaccine</option>
                 {vaccines.map((vaccine) => (
-                  <option key={vaccine._id} value={vaccine._id}>
+                  <option key={vaccine.id || vaccine._id} value={vaccine.id || vaccine._id}>
                     {vaccine.name}
                   </option>
                 ))}

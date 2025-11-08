@@ -22,50 +22,35 @@ const appointmentSchema = new mongoose.Schema(
       ref: 'TimeSlot',
       required: true
     },
-    staffId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Staff'
-    },
     vaccineId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vaccine',
       required: true
     },
-    dose: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 3
-    },
     date: {
       type: String,
       required: true
     },
-    time: {
+    startTime: {
       type: String,
-      required: true
+      default: '09:00'
+    },
+    endTime: {
+      type: String,
+      default: '10:00'
     },
     status: {
       type: String,
       enum: ['pending', 'completed', 'no-show', 'cancelled'],
       default: 'pending'
     },
+    notes: {
+      type: String,
+      default: ''
+    },
     completedAt: {
       type: Date
     },
-    completedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Staff'
-    },
-    notes: {
-      type: String
-    },
-    vaccineBatch: {
-      type: String
-    },
-    sideEffects: {
-      type: String
-    }
   },
   { 
     timestamps: true 
