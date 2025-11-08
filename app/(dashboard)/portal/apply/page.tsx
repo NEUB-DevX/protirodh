@@ -175,24 +175,35 @@ export default function ApplyVaccine() {
                 value={formData.centerId}
                 onChange={async (e) =>{
                   setFormData({ ...formData, centerId: e.target.value })
-                  const res = await fetch(`${API_URL}/get-all-dates`,{
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({centerId:e.target.value}),
-                  });
+                  console.log(e.target.value)
+                  try {
+                    const res = await fetch(`${API_URL}/get-all-dates`,{
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({centerId:e.target.value}),
+                    });
 
-                  const data = await res.json();
-                  setDateLists(data.data.dateSlots);
+                    const data = await res.json();
+                    if (data.success && data.data.dateSlots) {
+                      setDateLists(data.data.dateSlots);
+                    } else {
+                      setDateLists([]);
+                      console.error("Failed to fetch date slots:", data.message);
+                    }
+                  } catch (error) {
+                    console.error("Error fetching date slots:", error);
+                    setDateLists([]);
+                  }
                 }}
                 className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                 required
               >
                 <option value="">Select a center</option>
                 {centers.map((center) => (
-                  <option key={center._id} value={center.id}>
-                    {center.name} - {center.address}
+                  <option key={center.id} value={center.id}>
+                    {center.id} - {center.name} - {center.address}
                   </option>
                 ))}
               </select>
@@ -214,11 +225,21 @@ export default function ApplyVaccine() {
                   }
                   className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                   required
+                  disabled={!formData.centerId}
                 >
-                  <option value="">Select a date</option>
+                  <option value="">
+                    {!formData.centerId 
+                      ? "Please select a center first" 
+                      : dateLists.length === 0 
+                      ? "No available dates" 
+                      : "Select a date"}
+                  </option>
                   {dateLists.map((dateSlot) => (
                     <option key={dateSlot._id} value={dateSlot._id}>
-                      {new Date(dateSlot.date).toLocaleDateString()}
+                      {new Date(dateSlot.date).toLocaleDateString()} 
+                      {dateSlot.capacity && dateSlot.booked !== undefined 
+                        ? ` (${dateSlot.capacity - dateSlot.booked} slots available)` 
+                        : ''}
                     </option>
                   ))}
                 </select>

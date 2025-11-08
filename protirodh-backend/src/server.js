@@ -10,6 +10,7 @@ import connectDB from './configs/dbConnect.js';
 import jwtRouterV1 from './routes/v1/auth/jwtGeneratorRouter.js';
 import userNoPasswordRouterV1 from './routes/v1/user/createUserNoPasswordRouter.js';
 import getUserRouterV1 from './routes/v1/user/getUserRouter.js';
+import getDateSlotsRouterV1 from './routes/v1/user/getDateSlotsRouter.js';
 import { authenticateToken } from './middlewares/authMiddleware.js';
 import aiResRouterV1 from './routes/v1/ai/aiResRouter.js';
 import sendEmailRouterV1 from './routes/v1/email/sendEmailRouter.js';
@@ -118,6 +119,7 @@ app.use('/api/v1', allInfoRouterV1);
 // ====== Routers ======
 app.use('/api/v1', userNoPasswordRouterV1);
 app.use('/api/v1', getUserRouterV1);
+app.use('/api/v1', getDateSlotsRouterV1);
 app.use('/api/v1', jwtRouterV1);
 app.use('/api/v1', aiResRouterV1);
 app.use('/api/v1', sendOTPRouterV1);
