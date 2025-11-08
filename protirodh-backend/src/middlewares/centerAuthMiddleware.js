@@ -46,6 +46,7 @@ export const authenticateCenterToken = async (req, res, next) => {
     // Add center info to request object
     req.center = {
       id: center._id,
+      centerId: center._id,
       name: center.name,
       division: center.division
     };
