@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaCalendarCheck,
@@ -17,65 +17,213 @@ import {
   FaSort,
 } from "react-icons/fa";
 import { useGlobal } from "@/app/context/GlobalContext";
-import { staffProfileApi, staffDashboardApi, appointmentsApi } from "@/lib/api/staffApi";
-import type { StaffProfile, StaffDashboard, Appointment } from "@/lib/types/staff.types";
+
+// Mock data for appointments
+const mockAppointments = [
+  {
+    _id: "1",
+    userId: {
+      uid: "user1",
+      name: "Ahmed Hassan",
+      nid: "1234567890123",
+      contact: "+880 1712-345678",
+      email: "ahmed.hassan@email.com",
+      age: 35,
+      gender: "Male",
+      address: "123 Mirpur Road, Dhaka-1216",
+    },
+    vaccineId: {
+      _id: "v1",
+      name: "Pfizer-BioNTech",
+      manufacturer: "Pfizer Inc.",
+    },
+    centerId: "c1",
+    dateSlotId: "ds1",
+    timeSlotId: "ts1",
+    dose: 1,
+    date: "2024-11-08",
+    time: "09:00",
+    status: "pending" as const,
+    notes: "First dose. Patient has no known allergies.",
+    createdAt: "2024-11-07T10:00:00Z",
+  },
+  {
+    _id: "2",
+    userId: {
+      uid: "user2",
+      name: "Fatima Rahman",
+      nid: "9876543210987",
+      contact: "+880 1812-987654",
+      email: "fatima.rahman@email.com",
+      age: 28,
+      gender: "Female",
+      address: "45 Dhanmondi, Dhaka-1209",
+    },
+    vaccineId: {
+      _id: "v2",
+      name: "Moderna",
+      manufacturer: "Moderna Inc.",
+    },
+    centerId: "c1",
+    dateSlotId: "ds1",
+    timeSlotId: "ts2",
+    dose: 2,
+    date: "2024-11-08",
+    time: "10:30",
+    status: "completed" as const,
+    notes: "Second dose completed successfully.",
+    completedAt: "2024-11-08T10:45:00Z",
+    createdAt: "2024-11-07T11:00:00Z",
+  },
+  {
+    _id: "3",
+    userId: {
+      uid: "user3",
+      name: "Mohammad Ali",
+      nid: "5555666677778",
+      contact: "+880 1912-555666",
+      email: "mohammad.ali@email.com",
+      age: 42,
+      gender: "Male",
+      address: "78 Gulshan Avenue, Dhaka-1212",
+    },
+    vaccineId: {
+      _id: "v3",
+      name: "AstraZeneca",
+      manufacturer: "AstraZeneca",
+    },
+    centerId: "c1",
+    dateSlotId: "ds1",
+    timeSlotId: "ts3",
+    dose: 1,
+    date: "2024-11-08",
+    time: "11:00",
+    status: "pending" as const,
+    notes: "Patient requested morning slot.",
+    createdAt: "2024-11-07T09:30:00Z",
+  },
+  {
+    _id: "4",
+    userId: {
+      uid: "user4",
+      name: "Ayesha Siddique",
+      nid: "1111222233334",
+      contact: "+880 1712-111222",
+      email: "ayesha.siddique@email.com",
+      age: 31,
+      gender: "Female",
+      address: "22 Banani, Dhaka-1213",
+    },
+    vaccineId: {
+      _id: "v1",
+      name: "Pfizer-BioNTech",
+      manufacturer: "Pfizer Inc.",
+    },
+    centerId: "c1",
+    dateSlotId: "ds1",
+    timeSlotId: "ts4",
+    dose: 2,
+    date: "2024-11-08",
+    time: "14:00",
+    status: "pending" as const,
+    notes: "Completing second dose. No adverse reactions from first dose.",
+    createdAt: "2024-11-07T14:00:00Z",
+  },
+  {
+    _id: "5",
+    userId: {
+      uid: "user5",
+      name: "Karim Hossain",
+      nid: "4444555566667",
+      contact: "+880 1612-444555",
+      email: "karim.hossain@email.com",
+      age: 55,
+      gender: "Male",
+      address: "90 Uttara, Dhaka-1230",
+    },
+    vaccineId: {
+      _id: "v2",
+      name: "Moderna",
+      manufacturer: "Moderna Inc.",
+    },
+    centerId: "c1",
+    dateSlotId: "ds1",
+    timeSlotId: "ts5",
+    dose: 1,
+    date: "2024-11-08",
+    time: "15:30",
+    status: "no-show" as const,
+    notes: "Patient did not arrive for scheduled appointment.",
+    createdAt: "2024-11-07T12:00:00Z",
+  },
+  {
+    _id: "6",
+    userId: {
+      uid: "user6",
+      name: "Nadia Islam",
+      nid: "7777888899990",
+      contact: "+880 1812-777888",
+      email: "nadia.islam@email.com",
+      age: 26,
+      gender: "Female",
+      address: "34 Mohammadpur, Dhaka-1207",
+    },
+    vaccineId: {
+      _id: "v3",
+      name: "AstraZeneca",
+      manufacturer: "AstraZeneca",
+    },
+    centerId: "c1",
+    dateSlotId: "ds1",
+    timeSlotId: "ts6",
+    dose: 1,
+    date: "2024-11-08",
+    time: "16:00",
+    status: "completed" as const,
+    notes: "First dose administered. Patient tolerated well.",
+    completedAt: "2024-11-08T16:15:00Z",
+    createdAt: "2024-11-07T15:00:00Z",
+  },
+];
+
+// Export for use in other components
+export { mockAppointments };
 
 export default function StaffDashboard() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed" | "no-show">("all");
   const [sortBy, setSortBy] = useState<"time" | "name">("time");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const {logout, user} = useGlobal();
 
-  // Data states
-  const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
-  const [dashboard, setDashboard] = useState<StaffDashboard | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  // Use mock data
+  const appointments = mockAppointments;
 
-  // Staff info from profile or user context
+  // Staff info from user context or defaults
   const staffInfo = {
-    name: staffProfile?.name || user?.name || "Staff Member",
-    role: staffProfile?.role || "Vaccinator",
-    center: staffProfile?.center?.name || "Loading...",
-    shift: "09:00 AM - 04:00 PM",
+    name: user?.name || "Dr. Sarah Ahmed",
+    role: "Vaccinator",
+    center: "Dhaka Medical College Hospital",
+    shift: "09:00 AM - 05:00 PM",
   };
 
-  // Load data on mount
-  const loadAllData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const [profileRes, dashboardRes, appointmentsRes] = await Promise.all([
-        staffProfileApi.get(),
-        staffDashboardApi.get(),
-        appointmentsApi.getAll({
-          status: filterStatus === "all" ? undefined : filterStatus,
-          search: searchQuery || undefined,
-        }),
-      ]);
-
-      if (profileRes.data) setStaffProfile(profileRes.data);
-      if (dashboardRes.data) setDashboard(dashboardRes.data);
-      if (appointmentsRes.data) setAppointments(appointmentsRes.data);
-    } catch (err) {
-      console.error("Error loading data:", err);
-      setError(err instanceof Error ? err.message : "Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  }, [filterStatus, searchQuery]);
-
-  useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+  // Calculate stats from mock data
+  const stats = {
+    total: appointments.length,
+    completed: appointments.filter(a => a.status === "completed").length,
+    pending: appointments.filter(a => a.status === "pending").length,
+    noShow: appointments.filter(a => a.status === "no-show").length,
+  };
 
   // Filter and sort appointments locally
   const filteredAppointments = appointments
     .filter((apt) => {
+      // Filter by status
+      if (filterStatus !== "all" && apt.status !== filterStatus) {
+        return false;
+      }
+      // Filter by search query
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -93,15 +241,6 @@ export default function StaffDashboard() {
         return (a.userId?.name || "").localeCompare(b.userId?.name || "");
       }
     });
-
-  const stats = dashboard
-    ? dashboard.today
-    : {
-        total: 0,
-        completed: 0,
-        pending: 0,
-        noShow: 0,
-      };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,34 +276,8 @@ export default function StaffDashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-600 border-t-transparent mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading appointments...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
-            <div className="flex items-center gap-2">
-              <FaCalendarCheck className="text-red-600" />
-              <p className="text-red-800 font-medium">Error: {error}</p>
-            </div>
-            <button
-              onClick={loadAllData}
-              className="mt-2 text-sm text-red-600 hover:text-red-700 underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {!loading && (
-          <>
+        {/* Content */}
+        <>
         {/* Stats Overview */}
         <div className="mb-8 grid gap-6 md:grid-cols-4">
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
@@ -367,7 +480,6 @@ export default function StaffDashboard() {
           )}
         </div>
         </>
-        )}
       </div>
     </div>
   );
