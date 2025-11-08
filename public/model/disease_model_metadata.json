@@ -1,0 +1,107 @@
+{
+  "symptom_names": [
+    "fever",
+    "cough",
+    "shortness_of_breath",
+    "fatigue",
+    "body_aches",
+    "loss_of_taste",
+    "loss_of_smell",
+    "sore_throat",
+    "headache",
+    "chills",
+    "nausea",
+    "vomiting",
+    "diarrhea",
+    "abdominal_pain",
+    "chest_pain",
+    "confusion",
+    "bluish_lips",
+    "swollen_lymph_nodes",
+    "rash",
+    "constipation"
+  ],
+  "disease_classes": [
+    "hasCovid",
+    "hasPneumonia",
+    "hasTyphoid",
+    "nan"
+  ],
+  "feature_engineering": {
+    "symptom_domains": {
+      "Respiratory_Symptoms": [
+        "cough",
+        "shortness_of_breath",
+        "sore_throat",
+        "chest_pain",
+        "bluish_lips"
+      ],
+      "Gastrointestinal_Symptoms": [
+        "nausea",
+        "vomiting",
+        "diarrhea",
+        "abdominal_pain",
+        "constipation"
+      ],
+      "Systemic_Symptoms": [
+        "fever",
+        "fatigue",
+        "body_aches",
+        "headache",
+        "chills"
+      ],
+      "Neurological_Sensory_Symptoms": [
+        "loss_of_taste",
+        "loss_of_smell",
+        "confusion"
+      ]
+    },
+    "disease_specific_scores": {
+      "COVID_Specific_Score": [
+        "loss_of_taste",
+        "loss_of_smell",
+        "cough",
+        "fever"
+      ],
+      "Typhoid_Specific_Score": [
+        "abdominal_pain",
+        "fever",
+        "headache",
+        "rash"
+      ],
+      "Pneumonia_Specific_Score": [
+        "chest_pain",
+        "shortness_of_breath",
+        "cough",
+        "fever"
+      ]
+    },
+    "interaction_features": {
+      "Fever_Respiratory_Interaction": [
+        "fever",
+        "cough"
+      ],
+      "Fever_Gastro_Interaction": [
+        "fever",
+        "abdominal_pain"
+      ],
+      "Respiratory_Chest_Interaction": [
+        "cough",
+        "chest_pain"
+      ]
+    },
+    "calculated_features": {
+      "Total_Symptoms": "sum of all symptoms",
+      "Symptom_Pattern_Diversity": "variance of symptoms"
+    }
+  },
+  "input_shape": 32,
+  "model_accuracy": 0.98,
+  "model_type": "LogisticRegression",
+  "classes_mapping": {
+    "0": "hasCovid",
+    "1": "hasPneumonia",
+    "2": "hasTyphoid",
+    "3": "nan"
+  }
+}

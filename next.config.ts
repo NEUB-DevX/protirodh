@@ -8,7 +8,13 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.qrserver.com",
         pathname: "/v1/create-qr-code/**",
+
       },
+      {
+        protocol: "https",
+        hostname: "regina-untalented-sigmoidally.ngrok-free.dev",
+        pathname: "/api/v1/ai/**",
+      }
     ],
   },
   // Allow sending api request to *
