@@ -1,31 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaSyringe, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
+import { FaArrowLeft, FaCheckCircle } from "react-icons/fa";
+import { vaccinesApi, centersApi, appointmentsApi } from "@/lib/api/userApi";
 
 export default function ApplyVaccine() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  //eslint-disable-next-line
+  const [vaccines, setVaccines] = useState<any[]>([]);
+  //eslint-disable-next-line
+  const [centers, setCenters] = useState<any[]>([]);
+  const [error, setError] = useState<string>("");
 
   const [formData, setFormData] = useState({
-    vaccineName: "",
-    centerName: "",
+    vaccineId: "",
+    centerId: "",
     preferredDate: "",
     preferredTime: "",
     notes: "",
   });
 
+  // Fetch vaccines and centers on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch vaccines
+        const vaccinesResponse = await vaccinesApi.getAll();
+        if (vaccinesResponse.data) {
+          setVaccines(vaccinesResponse.data);
+        }
+
+        // Fetch centers
+        const centersResponse = await centersApi.getAll();
+        if (centersResponse.data) {
+          setCenters(centersResponse.data);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load data. Please refresh the page.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // Simple form submission
-    setTimeout(() => {
+    try {
+      await appointmentsApi.create({
+        vaccineId: formData.vaccineId,
+        centerId: formData.centerId,
+        dateSlotId: formData.preferredDate, // Using date as placeholder
+        timeSlotId: formData.preferredTime, // Using time as placeholder
+        notes: formData.notes,
+      });
+
       alert("Application submitted successfully! You will be contacted soon.");
       router.push("/portal");
-    }, 1000);
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      setError("Failed to submit application. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,73 +97,119 @@ export default function ApplyVaccine() {
       {/* Content */}
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">Apply for Vaccine</h1>
-          <p className="text-gray-600">Fill out the form below to request vaccination</p>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
+            Apply for Vaccine
+          </h1>
+          <p className="text-gray-600">
+            Fill out the form below to request vaccination
+          </p>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && !vaccines.length && !centers.length && (
+          <div className="mb-6 flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-green-600 border-t-transparent"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        )}
 
         {/* Simple Form */}
         <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="vaccineName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="vaccineId"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
                 Vaccine Name <span className="text-red-500">*</span>
               </label>
               <select
-                id="vaccineName"
-                value={formData.vaccineName}
-                onChange={(e) => setFormData({ ...formData, vaccineName: e.target.value })}
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                id="vaccineId"
+                value={formData.vaccineId}
+                onChange={(e) =>
+                  setFormData({ ...formData, vaccineId: e.target.value })
+                }
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                 required
               >
                 <option value="">Select a vaccine</option>
-                <option value="COVID-19">COVID-19</option>
-                <option value="Influenza">Influenza</option>
-                <option value="Hepatitis B">Hepatitis B</option>
-                <option value="Tetanus">Tetanus</option>
-                <option value="Other">Other</option>
+                {vaccines.map((vaccine) => (
+                  <option key={vaccine._id} value={vaccine._id}>
+                    {vaccine.name}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label htmlFor="centerName" className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Center <span className="text-red-500">*</span>
+              <label
+                htmlFor="centerId"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Vaccination Center <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                id="centerName"
-                value={formData.centerName}
-                onChange={(e) => setFormData({ ...formData, centerName: e.target.value })}
-                placeholder="Enter vaccination center name"
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              <select
+                id="centerId"
+                value={formData.centerId}
+                onChange={(e) =>
+                  setFormData({ ...formData, centerId: e.target.value })
+                }
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                 required
-              />
+              >
+                <option value="">Select a center</option>
+                {centers.map((center) => (
+                  <option key={center._id} value={center._id}>
+                    {center.name} - {center.address}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="preferredDate" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="preferredDate"
+                  className="mb-2 block text-sm font-medium text-gray-700"
+                >
                   Preferred Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   id="preferredDate"
                   value={formData.preferredDate}
-                  onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  onChange={(e) =>
+                    setFormData({ ...formData, preferredDate: e.target.value })
+                  }
+                  min={new Date().toISOString().split("T")[0]}
+                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="preferredTime" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="preferredTime"
+                  className="mb-2 block text-sm font-medium text-gray-700"
+                >
                   Preferred Time
                 </label>
                 <select
                   id="preferredTime"
                   value={formData.preferredTime}
-                  onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  onChange={(e) =>
+                    setFormData({ ...formData, preferredTime: e.target.value })
+                  }
+                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                 >
                   <option value="">Select time</option>
                   <option value="9:00 AM">9:00 AM</option>
@@ -132,16 +225,21 @@ export default function ApplyVaccine() {
             </div>
 
             <div>
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="notes"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
                 Additional Notes
               </label>
               <textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
                 placeholder="Any special requirements or notes..."
                 rows={4}
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
               />
             </div>
 

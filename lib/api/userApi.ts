@@ -77,11 +77,11 @@ export const vaccinesApi = {
 // Centers API
 export const centersApi = {
   getAll: async () => {
-    return apiCall("/user/centers");
+    return apiCall("/hub/centers");
   },
 
   getById: async (id: string) => {
-    return apiCall(`/user/centers/${id}`);
+    return apiCall(`/hub/centers/${id}`);
   },
 
   getNearby: async (division: string, district?: string, upazila?: string) => {
