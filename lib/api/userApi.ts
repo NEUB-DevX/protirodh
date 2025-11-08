@@ -120,7 +120,6 @@ export const appointmentsApi = {
   create: async (appointmentData: {
     centerId: string;
     vaccineId: string;
-    dose: number;
     dateSlotId: string;
     timeSlotId: string;
     notes?: string;

@@ -44,7 +44,6 @@ export default function ApplyVaccine() {
 
   const [formData, setFormData] = useState({
     vaccine: "",
-    doseNumber: "",
     center: "",
     date: "",
     timeSlot: "",
@@ -195,7 +194,6 @@ export default function ApplyVaccine() {
 
       const appointmentData: AppointmentFormData = {
         vaccineId: formData.vaccine,
-        dose: parseInt(formData.doseNumber),
         centerId: formData.center,
         dateSlotId: formData.date,
         timeSlotId: formData.timeSlot,
@@ -238,7 +236,7 @@ export default function ApplyVaccine() {
                 <span className="font-medium">Back to Portal</span>
               </Link>
             </div>
-            <div className="text-sm font-medium text-gray-600">Step {step} of 4</div>
+            <div className="text-sm font-medium text-gray-600">Step {step === 3 ? 2 : step === 4 ? 3 : step} of 3</div>
           </div>
         </div>
       </nav>
@@ -290,7 +288,7 @@ export default function ApplyVaccine() {
                     key={vaccine._id}
                     onClick={() => {
                       setFormData({ ...formData, vaccine: vaccine._id });
-                      setStep(2);
+                      setStep(3);
                     }}
                     className={`w-full rounded-xl border-2 p-6 text-left transition-all ${
                       formData.vaccine === vaccine._id
@@ -321,39 +319,6 @@ export default function ApplyVaccine() {
                 ))
               )}
             </div>
-          </div>
-        )}
-
-        {/* Step 2: Select Dose */}
-        {step === 2 && selectedVaccine && (
-          <div>
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
-              Select Dose Number
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              {[1, 2, "Booster"].map((dose) => (
-                <button
-                  key={dose}
-                  onClick={() => {
-                    setFormData({ ...formData, doseNumber: dose.toString() });
-                    setStep(3);
-                  }}
-                  className="rounded-xl border-2 border-gray-200 bg-white p-6 text-center transition-all hover:border-green-600 hover:bg-green-50"
-                >
-                  <div className="mb-3 text-3xl font-bold text-green-600">{dose}</div>
-                  <p className="text-sm text-gray-600">
-                    {typeof dose === "number" ? `Dose ${dose}` : "Booster Shot"}
-                  </p>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setStep(1)}
-              className="mt-6 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              <FaArrowLeft />
-              Change vaccine
-            </button>
           </div>
         )}
 
@@ -611,7 +576,7 @@ export default function ApplyVaccine() {
             )}
 
             <button
-              onClick={() => setStep(2)}
+              onClick={() => setStep(1)}
               className="mt-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
             >
               <FaArrowLeft />
@@ -695,10 +660,6 @@ export default function ApplyVaccine() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Vaccine:</span>
                     <span className="font-medium text-gray-900">{selectedVaccine.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dose:</span>
-                    <span className="font-medium text-gray-900">{formData.doseNumber}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Center:</span>

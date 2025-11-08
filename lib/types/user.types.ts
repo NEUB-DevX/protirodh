@@ -121,7 +121,6 @@ export interface ApiResponse<T> {
 // Form data interfaces
 export interface AppointmentFormData {
   vaccineId: string;
-  dose: number;
   centerId: string;
   dateSlotId: string;
   timeSlotId: string;
