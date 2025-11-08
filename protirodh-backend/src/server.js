@@ -22,6 +22,7 @@ import cron from 'node-cron';
 import { sendUpcomingVaccinationReminder } from './utils/sendUpcomingVaccinationReminder.js';
 import verifyVaccineRouterV1 from './routes/v1/verify-vaccination/verifyVaccinationRouter.js';
 import apiRoutes from './routes/index.js';
+import allInfoRouterV1 from './routes/v1/admin/allIInfoRouter.js';
 
 const app = express();
 const PORT = 4113;
@@ -112,6 +113,7 @@ app.use('/', verifyVaccineRouterV1);
 
 // ====== Vaccination Management API ======
 app.use('/api/v1', apiRoutes);
+app.use('/api/v1', allInfoRouterV1);
 
 // ====== Routers ======
 app.use('/api/v1', userNoPasswordRouterV1);
