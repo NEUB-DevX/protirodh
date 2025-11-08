@@ -175,7 +175,7 @@ export default function ApplyVaccine() {
                 value={formData.centerId}
                 onChange={async (e) =>{
                   setFormData({ ...formData, centerId: e.target.value })
-                  const res = await fetch(`${API_URL}/all-data`,{
+                  const res = await fetch(`${API_URL}/get-all-dates`,{
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -191,7 +191,7 @@ export default function ApplyVaccine() {
               >
                 <option value="">Select a center</option>
                 {centers.map((center) => (
-                  <option key={center._id} value={center._id}>
+                  <option key={center._id} value={center.id}>
                     {center.name} - {center.address}
                   </option>
                 ))}
@@ -206,65 +206,26 @@ export default function ApplyVaccine() {
                 >
                   Preferred Date <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
+                <select
                   id="preferredDate"
                   value={formData.preferredDate}
                   onChange={(e) =>
                     setFormData({ ...formData, preferredDate: e.target.value })
                   }
-                  min={new Date().toISOString().split("T")[0]}
                   className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                   required
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="preferredTime"
-                  className="mb-2 block text-sm font-medium text-gray-700"
                 >
-                  Preferred Time
-                </label>
-                <select
-                  id="preferredTime"
-                  value={formData.preferredTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, preferredTime: e.target.value })
-                  }
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
-                >
-                  <option value="">Select time</option>
-                  <option value="9:00 AM">9:00 AM</option>
-                  <option value="10:00 AM">10:00 AM</option>
-                  <option value="11:00 AM">11:00 AM</option>
-                  <option value="12:00 PM">12:00 PM</option>
-                  <option value="2:00 PM">2:00 PM</option>
-                  <option value="3:00 PM">3:00 PM</option>
-                  <option value="4:00 PM">4:00 PM</option>
-                  <option value="5:00 PM">5:00 PM</option>
+                  <option value="">Select a date</option>
+                  {dateLists.map((dateSlot) => (
+                    <option key={dateSlot._id} value={dateSlot._id}>
+                      {new Date(dateSlot.date).toLocaleDateString()}
+                    </option>
+                  ))}
                 </select>
               </div>
+
             </div>
 
-            <div>
-              <label
-                htmlFor="notes"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Additional Notes
-              </label>
-              <textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                placeholder="Any special requirements or notes..."
-                rows={4}
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
-              />
-            </div>
 
             <button
               type="submit"
