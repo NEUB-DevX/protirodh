@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft, FaCheckCircle } from "react-icons/fa";
 import { vaccinesApi, centersApi, appointmentsApi } from "@/lib/api/userApi";
+import { API_URL } from "@/app/const/config";
 
 export default function ApplyVaccine() {
   const router = useRouter();
@@ -14,6 +15,10 @@ export default function ApplyVaccine() {
   //eslint-disable-next-line
   const [centers, setCenters] = useState<any[]>([]);
   const [error, setError] = useState<string>("");
+
+  // eslint-disable-next-line
+  const [dateLists, setDateLists] = useState<any[]>([]);
+
 
   const [formData, setFormData] = useState({
     vaccineId: "",
@@ -28,6 +33,14 @@ export default function ApplyVaccine() {
     const fetchData = async () => {
       try {
         setLoading(true);
+
+        // await fetch(`${API_URL}/all-info`,{
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify({centerId:"690e7d14e53cceed86707edb"}),
+        // });
 
         // Fetch vaccines
         const vaccinesResponse = await vaccinesApi.getAll();
@@ -160,9 +173,19 @@ export default function ApplyVaccine() {
               <select
                 id="centerId"
                 value={formData.centerId}
-                onChange={(e) =>
+                onChange={async (e) =>{
                   setFormData({ ...formData, centerId: e.target.value })
-                }
+                  const res = await fetch(`${API_URL}/all-data`,{
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({centerId:e.target.value}),
+                  });
+
+                  const data = await res.json();
+                  setDateLists(data.data.dateSlots);
+                }}
                 className="block w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
                 required
               >
