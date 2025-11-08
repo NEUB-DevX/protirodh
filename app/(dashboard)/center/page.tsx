@@ -1740,9 +1740,11 @@ export default function CenterDashboard() {
                     required
                   >
                     <option value="">Select vaccine type</option>
-                    <option value="Pfizer-BioNTech">Pfizer-BioNTech</option>
-                    <option value="Moderna">Moderna</option>
-                    <option value="AstraZeneca">AstraZeneca</option>
+                    {vaccines.map((vaccine) => (
+                      <option key={vaccine.id || vaccine._id} value={vaccine.id || vaccine._id}>
+                        {vaccine.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

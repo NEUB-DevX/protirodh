@@ -19,8 +19,13 @@ export const createStockRequest = async (req, res) => {
       });
     }
 
-    // Find vaccine by name
-    const vaccineDoc = await Vaccine.findOne({ name: vaccine, isActive: true });
+    // Find vaccine by ID or name (supports both for backward compatibility)
+    let vaccineDoc = await Vaccine.findById(vaccine);
+    if (!vaccineDoc) {
+      // Try finding by name if ID lookup fails
+      vaccineDoc = await Vaccine.findOne({ name: vaccine, isActive: true });
+    }
+    
     if (!vaccineDoc) {
       return res.status(404).json({
         success: false,
