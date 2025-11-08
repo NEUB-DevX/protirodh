@@ -668,7 +668,27 @@ export default function HubDashboard() {
               Stock Requests & Supply Chain
             </h2>
             <div className="space-y-4">
-              {stockRequests.map((request) => (
+              {stockRequests.map((request) => {
+                // Extract center name
+                const centerName = request.centerName || 
+                  (typeof request.centerId === 'object' ? request.centerId.name : request.center) || 
+                  'Unknown Center';
+                
+                // Extract vaccine name
+                const vaccineName = request.vaccineName || 
+                  (typeof request.vaccineId === 'object' ? request.vaccineId.name : request.vaccine) || 
+                  'Unknown Vaccine';
+                
+                // Extract date
+                const requestDate = request.createdAt 
+                  ? new Date(request.createdAt).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })
+                  : request.requested || request.requestDate || 'N/A';
+                
+                return (
                 <div
                   key={request._id || request.id}
                   className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
@@ -677,10 +697,10 @@ export default function HubDashboard() {
                     <div className="flex-1">
                       <div className="mb-3 flex items-center justify-between">
                         <h3 className="text-lg font-bold text-gray-900">
-                          {request.center}
+                          {centerName}
                         </h3>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${
                             request.status === "pending"
                               ? "bg-yellow-100 text-yellow-800"
                               : request.status === "approved"
@@ -695,7 +715,7 @@ export default function HubDashboard() {
                         <div>
                           <p className="text-xs text-gray-500">Vaccine</p>
                           <p className="font-semibold text-gray-900">
-                            {request.vaccine}
+                            {vaccineName}
                           </p>
                         </div>
                         <div>
@@ -709,10 +729,31 @@ export default function HubDashboard() {
                             Requested Date
                           </p>
                           <p className="font-semibold text-gray-900">
-                            {request.requested || request.requestDate}
+                            {requestDate}
                           </p>
                         </div>
                       </div>
+                      {request.urgency && (
+                        <div className="mt-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              request.urgency === 'high'
+                                ? 'bg-red-100 text-red-800'
+                                : request.urgency === 'medium'
+                                ? 'bg-orange-100 text-orange-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
+                            {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)} Priority
+                          </span>
+                        </div>
+                      )}
+                      {request.notes && (
+                        <div className="mt-3 rounded-lg bg-gray-50 p-3">
+                          <p className="text-xs text-gray-500 mb-1">Notes:</p>
+                          <p className="text-sm text-gray-700">{request.notes}</p>
+                        </div>
+                      )}
                     </div>
                     {request.status === "pending" && (
                       <div className="ml-4 flex gap-2">
@@ -732,7 +773,17 @@ export default function HubDashboard() {
                     )}
                   </div>
                 </div>
-              ))}
+              );
+              })}
+              {stockRequests.length === 0 && (
+                <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
+                  <FaBoxes className="mx-auto mb-4 text-5xl text-gray-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Stock Requests</h3>
+                  <p className="text-sm text-gray-500">
+                    There are no stock requests at the moment.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

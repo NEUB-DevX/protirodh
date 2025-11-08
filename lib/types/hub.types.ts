@@ -31,20 +31,33 @@ export interface Center {
 // Stock Request types
 export interface StockRequest {
   _id?: string;
-  id?: number;
-  center: string;
-  centerId?: string;
-  vaccine: string;
-  vaccineId?: string;
+  id?: string;
+  center?: string;
+  centerName?: string;
+  centerId?: {
+    name: string;
+    centerId: string;
+    id: string;
+  } | string;
+  vaccine?: string;
+  vaccineName?: string;
+  vaccineId?: {
+    name: string;
+    id: string;
+  } | string;
   quantity: number;
-  requested: string;
+  requested?: string;
   requestDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
   status: 'pending' | 'approved' | 'rejected' | 'fulfilled';
   urgency?: 'low' | 'medium' | 'high';
   notes?: string;
-  approvedBy?: string;
+  requestedBy?: string;
+  approvedBy?: string | null;
   approvedDate?: string;
-  rejectionReason?: string;
+  approvedAt?: string | null;
+  rejectionReason?: string | null;
 }
 
 // Vaccine Movement types
