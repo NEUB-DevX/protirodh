@@ -197,7 +197,8 @@ export const timeSlotApi = {
 
   create: async (timeSlotData: {
     dateSlotId: string;
-    time: string;
+    startTime: string;
+    endTime: string;
     capacity: number;
     assignedStaffId?: string;
   }) => {
@@ -210,7 +211,8 @@ export const timeSlotApi = {
   update: async (
     id: string,
     timeSlotData: Partial<{
-      time: string;
+      startTime: string;
+      endTime: string;
       capacity: number;
       assignedStaffId?: string | null;
     }>,

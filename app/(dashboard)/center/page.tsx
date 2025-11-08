@@ -95,11 +95,13 @@ interface Staff {
 interface TimeSlot {
   _id?: string;
   id?: string;
-  time: string;
+  startTime: string;
+  endTime: string;
   capacity: number;
   booked: number;
-  appointments: number;
-  assignedStaff: { id: number; name: string } | null;
+  appointments?: number;
+  assignedStaff?: { id: number; name: string } | null;
+  assignedStaffId?: { _id: string; name: string; staffId: string; role: string } | null;
   dateSlotId?: string;
 }
 
@@ -325,28 +327,17 @@ export default function CenterDashboard() {
     });
   };
 
-  const openTimeSlotModal = (timeSlot?: TimeSlot & { startTime?: string; endTime?: string }) => {
+  const openTimeSlotModal = (timeSlot?: TimeSlot) => {
     setEditingTimeSlot(timeSlot || null);
     if (timeSlot) {
-      // Parse the time string (format: "HH:MM-HH:MM") or use provided startTime/endTime
-      let startTime = '';
-      let endTime = '';
-      
-      if (timeSlot.startTime && timeSlot.endTime) {
-        startTime = timeSlot.startTime;
-        endTime = timeSlot.endTime;
-      } else if (timeSlot.time) {
-        [startTime, endTime] = timeSlot.time.split('-');
-      }
-      
       setTimeSlotForm({
-        startTime,
-        endTime,
+        startTime: timeSlot.startTime || '',
+        endTime: timeSlot.endTime || '',
         capacity: timeSlot.capacity,
         booked: timeSlot.booked,
-        assignedStaffId: timeSlot.assignedStaff
-          ? timeSlot.assignedStaff.id.toString()
-          : null,
+        assignedStaffId: timeSlot.assignedStaffId
+          ? (typeof timeSlot.assignedStaffId === 'object' ? timeSlot.assignedStaffId._id : timeSlot.assignedStaffId)
+          : (timeSlot.assignedStaff ? timeSlot.assignedStaff.id.toString() : null),
       });
     } else {
       setTimeSlotForm({
@@ -476,7 +467,8 @@ export default function CenterDashboard() {
 
       const timeSlotData = {
         dateSlotId: selectedDateSlotId,
-        time: `${timeSlotForm.startTime}-${timeSlotForm.endTime}`,
+        startTime: timeSlotForm.startTime,
+        endTime: timeSlotForm.endTime,
         capacity: timeSlotForm.capacity,
         assignedStaffId: timeSlotForm.assignedStaffId || undefined,
       };
@@ -1334,13 +1326,9 @@ export default function CenterDashboard() {
                     </p>
                   </div>
                 ) : (
-                  timeSlotsList.map((timeSlot, index) => {
-                    // Parse the time field (format: "HH:MM-HH:MM")
-                    const [startTime, endTime] = timeSlot.time ? timeSlot.time.split('-') : ['', ''];
-                    
-                    return (
+                  timeSlotsList.map((timeSlot, index) => (
                     <div
-                      key={index}
+                      key={timeSlot._id || index}
                       className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                     >
                       <div className="flex items-center justify-between">
@@ -1348,7 +1336,7 @@ export default function CenterDashboard() {
                           <FaClock className="text-2xl text-blue-600" />
                           <div>
                             <h4 className="font-bold text-gray-900">
-                              {startTime} - {endTime}
+                              {timeSlot.startTime} - {timeSlot.endTime}
                             </h4>
                             <p className="text-sm text-gray-600">
                               {timeSlot.booked} / {timeSlot.capacity} appointments
@@ -1357,11 +1345,7 @@ export default function CenterDashboard() {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => openTimeSlotModal({
-                              ...timeSlot,
-                              startTime,
-                              endTime
-                            } as TimeSlot & { startTime: string; endTime: string })}
+                            onClick={() => openTimeSlotModal(timeSlot)}
                             className="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 hover:bg-gray-50"
                           >
                             <FaEdit />
@@ -1373,7 +1357,15 @@ export default function CenterDashboard() {
                           </button>
                         </div>
                       </div>
-                      {timeSlot.assignedStaff && (
+                      {(timeSlot.assignedStaffId && typeof timeSlot.assignedStaffId === 'object') && (
+                        <div className="mt-3 rounded-lg bg-green-50 p-3">
+                          <p className="text-sm text-green-700">
+                            <span className="font-semibold">Assigned Staff:</span>{" "}
+                            {timeSlot.assignedStaffId.name}
+                          </p>
+                        </div>
+                      )}
+                      {(timeSlot.assignedStaff) && (
                         <div className="mt-3 rounded-lg bg-green-50 p-3">
                           <p className="text-sm text-green-700">
                             <span className="font-semibold">Assigned Staff:</span>{" "}
@@ -1405,8 +1397,7 @@ export default function CenterDashboard() {
                         </div>
                       </div>
                     </div>
-                    );
-                  })
+                  ))
                 )}
               </div>
             </div>
